@@ -1,15 +1,21 @@
-package com.inditex.coreplatform.price_service.infrastructure.adapter.db.entities;
+package com.inditex.coreplatform.infrastructure.persistence.entities;
 
 import java.time.LocalDateTime;
 
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Table("prices")
-public class PricesEntity {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class PriceEntity {
     @Column("brand_id")
     private Integer brandId;
 
@@ -23,7 +29,7 @@ public class PricesEntity {
     private Integer priceList;
 
     @Column("product_id")
-    private Long productId;
+    private Integer productId;
 
     @Column("priority")
     private Integer priority;

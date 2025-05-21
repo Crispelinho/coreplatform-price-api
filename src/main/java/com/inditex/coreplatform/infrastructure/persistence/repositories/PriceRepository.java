@@ -30,7 +30,6 @@ public class PriceRepository implements IPriceRepository {
                         Integer brandId,
                         LocalDateTime startDate,
                         LocalDateTime endDate) {
-                System.out.println("Product ID: " + productId);
                 return reactivePriceRepository
                                 .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
                                                 productId,
