@@ -27,10 +27,10 @@ public class Price {
     private Integer brandId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Integer priceList;
+    private Integer rateId;
     private Integer productId;
     private Integer priority;
     private Double price;
-    private String curr;
+    private String currency;
 
 }

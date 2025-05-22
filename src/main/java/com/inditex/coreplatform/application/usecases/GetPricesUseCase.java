@@ -13,7 +13,6 @@ public class GetPricesUseCase {
     }
 
     public Flux<Price> execute() {
-        System.out.println("Executing GetPricesUseCase");
         return priceService.getAllPrices();
     }
 
