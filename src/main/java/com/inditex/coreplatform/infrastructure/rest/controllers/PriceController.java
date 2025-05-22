@@ -35,14 +35,13 @@ public class PriceController {
         }
 
         @GetMapping(value = "/prices", produces = MediaType.APPLICATION_NDJSON_VALUE)
-        public Mono<ResponseEntity<Flux<Price>>> getPrices() {
+        public Mono<ResponseEntity<Flux<PriceResponse>>> getPrices() {
                 GetPricesUseCase getPricesUseCase = new GetPricesUseCase(priceService);
+                Flux<PriceResponse> pricesResponse = getPricesUseCase.execute().map(priceMapper::toResponse);
 
-                Flux<Price> prices = getPricesUseCase.execute();
-
-                return prices.hasElements()
+                return pricesResponse.hasElements()
                                 .flatMap(hasElements -> hasElements
-                                                ? Mono.just(ResponseEntity.ok(prices))
+                                                ? Mono.just(ResponseEntity.ok(pricesResponse))
                                                 : Mono.just(ResponseEntity.notFound().build()));
         }
 
@@ -56,7 +55,8 @@ public class PriceController {
                 GetApplicablePriceQuery query = new GetApplicablePriceQuery(productId, brandId, applicationDate);
 
                 return getApplicablePriceUseCase.execute(query)
-                                .map(priceMapper::toResponse).map(ResponseEntity::ok)
+                                .map(priceMapper::toResponse)
+                                .map(ResponseEntity::ok)
                                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
         }
 }

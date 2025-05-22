@@ -64,3 +64,62 @@ Consulta el precio aplicable para una marca, producto y fecha específicos.
   "price": 25.45,
   "currency": "EUR"
 }
+```
+
+---
+
+## Endpoints disponibles
+
+### 1. Obtener todos los precios
+
+**GET /prices**
+
+- Devuelve un listado de todos los precios disponibles en formato NDJSON.
+- Respuesta exitosa: Código 200 y un array de objetos `Price`.
+- Si no existen precios: Código 404.
+
+#### Ejemplo de respuesta exitosa
+
+```json
+[
+  {
+    "productId": 35455,
+    "brandId": 1,
+    "rateId": 2,
+    "startDate": "2020-06-14T15:00:00",
+    "endDate": "2020-06-14T18:30:00",
+    "price": 25.45
+  }
+]
+```
+
+### 2. Obtener precio aplicable por producto, marca y fecha
+
+**GET /applicationPrices?productId={productId}&brandId={brandId}&applicationDate={fecha}**
+
+- Devuelve el precio aplicable para un producto, marca y fecha dados.
+- Parámetros:
+  - `productId` (Integer, requerido): ID del producto.
+  - `brandId` (Integer, requerido): ID de la marca.
+  - `applicationDate` (String, requerido, formato ISO-8601): Fecha de aplicación.
+- Respuesta exitosa: Código 200 y un objeto `PriceResponse`.
+- Si no existe precio aplicable: Código 404.
+
+#### Ejemplo de respuesta exitosa
+
+```json
+{
+  "productId": 35455,
+  "brandId": 1,
+  "rateId": 2,
+  "startDate": "2020-06-14T15:00:00",
+  "endDate": "2020-06-14T18:30:00",
+  "price": 25.45
+}
+```
+
+#### Ejemplo de respuesta cuando no hay precio aplicable
+
+- Código de estado: 404 Not Found
+
+---
