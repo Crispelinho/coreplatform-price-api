@@ -1,4 +1,4 @@
-package com.inditex.coreplatform.infrastructure.adapter.controllers;
+package com.inditex.coreplatform.infrastructure.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -8,8 +8,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import com.inditex.coreplatform.domain.ports.IPriceRepository;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 public class PriceControllerTest {
@@ -17,15 +15,7 @@ public class PriceControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
-    private final String BASE_URL = "/prices";
-
-    @Autowired
-    private IPriceRepository priceRepository;
-
-    @Test
-    void testBeanCreated() {
-        assertNotNull(priceRepository);
-    }
+    private final String BASE_URL = "/applicationPrices";
 
     @Test
     void testCase1_14June10AM() {
@@ -34,10 +24,10 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-14T10:00:00")
+                .queryParam("applicationDate", "2020-06-14T10:00:00")
                 .build())
             .exchange()
-            .expectStatus().isNotFound();
+            .expectStatus().isOk();
     }
 
     @Test
@@ -47,10 +37,10 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-14T16:00:00")
+                .queryParam("applicationDate", "2020-06-14T16:00:00")
                 .build())
             .exchange()
-            .expectStatus().isNotFound();
+            .expectStatus().isOk();
     }
 
     @Test
@@ -60,10 +50,10 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-14T21:00:00")
+                .queryParam("applicationDate", "2020-06-14T21:00:00")
                 .build())
             .exchange()
-            .expectStatus().isNotFound();
+            .expectStatus().isOk();
     }
 
     @Test
@@ -73,10 +63,10 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-15T10:00:00")
+                .queryParam("applicationDate", "2020-06-15T10:00:00")
                 .build())
             .exchange()
-            .expectStatus().isNotFound();
+            .expectStatus().isOk();
     }
 
     @Test
@@ -86,10 +76,10 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-16T21:00:00")
+                .queryParam("applicationDate", "2020-06-16T21:00:00")
                 .build())
             .exchange()
-            .expectStatus().isNotFound();
+            .expectStatus().isOk();
     }
 
    @Test
@@ -99,7 +89,7 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 // no enviamos productId
                 .queryParam("brandId", 1)
-                .queryParam("startDate", "2020-06-14T10:00:00")
+                .queryParam("applicationDate", "2020-06-14T10:00:00")
                 .build())
             .exchange()
             .expectStatus().isBadRequest();
@@ -112,7 +102,7 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 // no enviamos brandId
-                .queryParam("startDate", "2020-06-14T10:00:00")
+                .queryParam("applicationDate", "2020-06-14T10:00:00")
                 .build())
             .exchange()
             .expectStatus().isBadRequest();
@@ -125,7 +115,7 @@ public class PriceControllerTest {
                 .path(BASE_URL)
                 .queryParam("productId", 35455)
                 .queryParam("brandId", 1)
-                // no enviamos startDate
+                // no enviamos applicationtDate
                 .build())
             .exchange()
             .expectStatus().isBadRequest();
