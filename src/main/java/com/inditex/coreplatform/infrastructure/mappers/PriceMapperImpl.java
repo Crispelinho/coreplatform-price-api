@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.persistence.entities.PriceEntity;
+import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
 
 @Component
 public class PriceMapperImpl implements PriceMapper {
@@ -18,11 +19,11 @@ public class PriceMapperImpl implements PriceMapper {
                 .brandId(entity.getBrandId())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
-                .priceList(entity.getPriceList())
+                .rateId(entity.getPriceList())
                 .productId(entity.getProductId())
                 .priority(entity.getPriority())
                 .price(entity.getPrice())
-                .curr(entity.getCurr())
+                .currency(entity.getCurr())
                 .build();
     }
 
@@ -36,11 +37,27 @@ public class PriceMapperImpl implements PriceMapper {
         entity.setBrandId(domain.getBrandId());
         entity.setStartDate(domain.getStartDate());
         entity.setEndDate(domain.getEndDate());
-        entity.setPriceList(domain.getPriceList());
+        entity.setPriceList(domain.getRateId());
         entity.setProductId(domain.getProductId());
         entity.setPriority(domain.getPriority());
         entity.setPrice(domain.getPrice());
-        entity.setCurr(domain.getCurr());
+        entity.setCurr(domain.getCurrency());
         return entity;
+    }
+
+    @Override
+    public PriceResponse toResponse(Price domain) {
+        if (domain == null) {
+            return null;
+        }
+
+        return PriceResponse.builder()
+                .brandId(domain.getBrandId())
+                .startDate(domain.getStartDate())
+                .endDate(domain.getEndDate())
+                .rateId(domain.getRateId())
+                .productId(domain.getProductId())
+                .price(domain.getPrice())
+                .build();
     }
 }

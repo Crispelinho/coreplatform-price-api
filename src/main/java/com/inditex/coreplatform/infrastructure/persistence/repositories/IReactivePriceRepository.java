@@ -11,11 +11,12 @@ import reactor.core.publisher.Mono;
 public interface IReactivePriceRepository extends ReactiveCrudRepository<PriceEntity, Long> {
 
     /**
-     * Finds a price by product ID, brand ID, and start date.
+     * Finds a price by product ID, brand ID, start date and end date.
      *
      * @param productId the product ID
      * @param brandId   the brand ID
      * @param startDate the start date
+     * @param endDate   the end date
      * @return the price
      */
 
