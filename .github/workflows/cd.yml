@@ -61,11 +61,6 @@ jobs:
 
       - name: List running containers
         run: docker ps -a
-    
-      - name: Install k6
-        run: |
-          curl -s https://packagecloud.io/install/repositories/loadimpact/k6/script.deb.sh | sudo bash
-          sudo apt install k6 -y
       
       - name: Install k6
         run: |
