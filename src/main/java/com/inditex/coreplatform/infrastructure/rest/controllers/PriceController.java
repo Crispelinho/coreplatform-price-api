@@ -14,9 +14,8 @@ import com.inditex.coreplatform.application.service.PriceService;
 import com.inditex.coreplatform.application.usecases.GetApplicablePriceUseCase;
 import com.inditex.coreplatform.application.usecases.GetPricesUseCase;
 import com.inditex.coreplatform.application.usecases.queries.GetApplicablePriceQuery;
-import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.mappers.PriceMapper;
-import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
