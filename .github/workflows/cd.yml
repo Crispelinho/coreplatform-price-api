@@ -67,16 +67,20 @@ jobs:
           curl -s https://packagecloud.io/install/repositories/loadimpact/k6/script.deb.sh | sudo bash
           sudo apt install k6 -y
       
-      - name: Install k6-reporter
-        run: npm install -g k6-reporter
+      - name: Install k6
+        run: |
+          sudo apt update
+          sudo apt install -y gnupg ca-certificates
+          curl -s https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/k6.gpg
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt update
+          sudo apt install -y k6
 
       - name: Run Load Test and Save to JSON
         run: k6 run load-tests/load-test.js --out json=load-test-result.json
 
       - name: Generate HTML Report
-        run: |
-          k6 run load-tests/load-test.js --out json=load-test-result.json
-          k6-reporter load-test-result.json -o load-test-report.html
+        run: k6-reporter load-test-result.json -o load-test-report.html
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
