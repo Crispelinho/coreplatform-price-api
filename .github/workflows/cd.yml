@@ -84,7 +84,6 @@ jobs:
           git clone https://github.com/benc-uk/k6-reporter.git
           cd k6-reporter
           npm install
-          npm run build
           NODE_OPTIONS=--openssl-legacy-provider npm run build
 
       - name: Generate HTML Report from JSON
