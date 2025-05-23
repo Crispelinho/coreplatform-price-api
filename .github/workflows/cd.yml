@@ -74,6 +74,14 @@ jobs:
       - name: Run Load Test and Save to JSON
         run: k6 run load-tests/load-test.js --out json=load-test-result.json
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' 
+
+      - name: Install k6-reporter globally
+        run: npm install -g k6-reporter
+      
       - name: Generate HTML Report
         run: k6-reporter load-test-result.json -o load-test-report.html
 
