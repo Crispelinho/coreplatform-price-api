@@ -2,9 +2,12 @@ name: CD Pipeline
 
 on:
   push:
-    branches: [ feature/add-ci-cd-pipeline ]
+    branches:
+      - main
+      - feature/add-ci-cd-pipeline
+      - 'release/*'
     tags:
-      - 'v*'  # Se ejecuta al crear un tag como v1.0.0
+      - 'v*'
 
 jobs:
   deploy:

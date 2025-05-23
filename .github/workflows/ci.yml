@@ -4,7 +4,6 @@ on:
   push:
     branches: [ feature/add-ci-cd-pipeline ]
   pull_request:
-    branches: [ feature/add-ci-cd-pipeline ]
 
 jobs:
   build:
