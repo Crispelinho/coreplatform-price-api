@@ -8,7 +8,7 @@ Todas las modificaciones importantes de este proyecto se documentarán en este a
 - Ejecución automática de tests y análisis de calidad en cada push (build, test, Jacoco, SonarQube).
 - Generación de artefactos y reporte de cobertura en el pipeline.
 
-## [1.0.0] - 2025-05-23
+## [1.0.0] - 2025-05-22
 ### Añadido
 - Estructura inicial del proyecto siguiendo arquitectura hexagonal.
 - Implementación de endpoints REST para consulta de precios.
@@ -19,6 +19,3 @@ Todas las modificaciones importantes de este proyecto se documentarán en este a
 - Integración de análisis de calidad con SonarQube.
 - Base de datos H2 en memoria con scripts de inicialización.
 - Documentación inicial en README.md.
-- Configuración de CI/CD para integración y despliegue continuo.
-- Ejecución automática de tests y análisis de calidad en cada push (build, test, Jacoco, SonarQube).
-- Generación de artefactos y reporte de cobertura en el pipeline.
