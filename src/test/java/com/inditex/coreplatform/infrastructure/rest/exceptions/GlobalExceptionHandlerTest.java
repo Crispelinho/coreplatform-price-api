@@ -40,6 +40,35 @@ class GlobalExceptionHandlerTest {
         assertTrue(response.getBody().contains("Parámetro 'id' inválido: 'abc'. Se esperaba tipo Integer."));
     }
 
+@Test
+void handleTypeMismatch_withNullFields_returnsMessageWithDesconocido() {
+    TypeMismatchException ex = mock(TypeMismatchException.class);
+    when(ex.getPropertyName()).thenReturn(null);
+    when(ex.getValue()).thenReturn(null);
+    when(ex.getRequiredType()).thenReturn(null);
+
+    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(response.getBody().contains("Parámetro 'desconocido' inválido: 'desconocido'. Se esperaba tipo desconocido."));
+}
+
+@Test
+void handleTypeMismatch_withNullRequiredType_returnsMessageWithDesconocido() {
+    // Creamos un mock de TypeMismatchException con valores específicos
+    TypeMismatchException ex = mock(TypeMismatchException.class);
+    when(ex.getPropertyName()).thenReturn("productId");
+    when(ex.getValue()).thenReturn("abc");
+    when(ex.getRequiredType()).thenReturn(null); // requiredType es null
+
+    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(response.getBody().contains("Parámetro 'productId' inválido: 'abc'. Se esperaba tipo desconocido."));
+}
+
+
+
     @Test
     void handleMissingParams_returnsBadRequest() {
         MissingRequestValueException ex = mock(MissingRequestValueException.class);

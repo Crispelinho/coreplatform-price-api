@@ -33,7 +33,7 @@ public class PriceController {
                 this.priceMapper = priceMapper;
         }
 
-        @GetMapping(value = "/prices", produces = MediaType.APPLICATION_NDJSON_VALUE)
+        @GetMapping(value = "/prices", produces = MediaType.APPLICATION_JSON_VALUE)
         public Mono<ResponseEntity<Flux<PriceResponse>>> getPrices() {
                 GetPricesUseCase getPricesUseCase = new GetPricesUseCase(priceService);
                 Flux<PriceResponse> pricesResponse = getPricesUseCase.execute().map(priceMapper::toResponse);
@@ -44,7 +44,7 @@ public class PriceController {
                                                 : Mono.just(ResponseEntity.notFound().build()));
         }
 
-        @GetMapping(value = "/applicationPrices", produces = MediaType.APPLICATION_NDJSON_VALUE)
+        @GetMapping(value = "/applicationPrices", produces = MediaType.APPLICATION_JSON_VALUE)
         public Mono<ResponseEntity<PriceResponse>> getPricesByProduct(
                         @RequestParam("productId") @NotNull Integer productId,
                         @RequestParam("brandId") @NotNull Integer brandId,
