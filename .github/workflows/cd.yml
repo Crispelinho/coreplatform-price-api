@@ -24,14 +24,30 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t inditexcoreplatform/price-service:${{ github.ref_name }} .
+        run: docker build -t inditexcoreplatform/price-service:${{ github.run_number }} .
 
       - name: Push Docker image
-        run: docker push inditexcoreplatform/price-service:${{ github.ref_name }}
+        run: docker push inditexcoreplatform/price-service:${{ github.run_number }}
 
       - name: Pull and Run Latest Image
         run: |
-          docker pull inditexcoreplatform/price-service:${{ github.ref_name }}
+          docker pull inditexcoreplatform/price-service:${{ github.run_number }}
           docker stop price-service || true
           docker rm price-service || true
-          docker run -d -p 8080:8080 inditexcoreplatform/price-service:${{ github.ref_name }}
+          docker run -d -p 8080:8080 inditexcoreplatform/price-service:${{ github.run_number }} --name price-service
+
+      - name: Test HTTP response
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Service is not healthy. Status code: $STATUS"
+            exit 1
+          else
+            echo "Service responded with status code: $STATUS"
+          fi
+
+      - name: Wait for container to initialize
+        run: sleep 10
+
+      - name: Show container logs
+        run: docker logs price-service
