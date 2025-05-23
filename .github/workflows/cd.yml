@@ -38,7 +38,7 @@ jobs:
       - name: Pull and Run Latest Image
         run: |
           docker pull cristhiancarpio/price-service:${{ github.run_number }}
-          docker run -d -p 8080:8080 cristhiancarpio/price-service:${{ github.run_number }}
+          docker run -d --name price-service -p 8080:8080 cristhiancarpio/price-service:${{ github.run_number }}
 
       - name: Test HTTP response
         run: |
@@ -57,4 +57,4 @@ jobs:
         run: sleep 10
 
       - name: Show container logs
-        run: docker logs cristhiancarpio/price-service:${{ github.run_number }}
+        run: docker logs price-service
