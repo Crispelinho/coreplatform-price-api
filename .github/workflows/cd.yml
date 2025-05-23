@@ -38,8 +38,6 @@ jobs:
       - name: Pull and Run Latest Image
         run: |
           docker pull cristhiancarpio/price-service:${{ github.run_number }}
-          docker stop price-service || true
-          docker rm price-service || true
           docker run -d -p 8080:8080 cristhiancarpio/price-service:${{ github.run_number }} --name price-service
 
       - name: Test HTTP response
