@@ -30,17 +30,17 @@ jobs:
         run: ./gradlew clean build
 
       - name: Build Docker image
-        run: docker build -t inditexcoreplatform/price-service:${{ github.run_number }} .
+        run: docker build -t cristhiancarpio/price-service:${{ github.run_number }} .
 
       - name: Push Docker image
-        run: docker push inditexcoreplatform/price-service:${{ github.run_number }}
+        run: docker push cristhiancarpio/price-service:${{ github.run_number }}
 
       - name: Pull and Run Latest Image
         run: |
-          docker pull inditexcoreplatform/price-service:${{ github.run_number }}
+          docker pull cristhiancarpio/price-service:${{ github.run_number }}
           docker stop price-service || true
           docker rm price-service || true
-          docker run -d -p 8080:8080 inditexcoreplatform/price-service:${{ github.run_number }} --name price-service
+          docker run -d -p 8080:8080 cristhiancarpio/price-service:${{ github.run_number }} --name price-service
 
       - name: Test HTTP response
         run: |
