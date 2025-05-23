@@ -77,13 +77,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' 
+          node-version: '18'
 
-      - name: Install k6-reporter globally
-        run: npm install -g k6-reporter
-      
-      - name: Generate HTML Report
-        run: k6-reporter load-test-result.json -o load-test-report.html
+      - name: Clone k6-html-reporter
+        run: |
+          git clone https://github.com/szboynono/k6-html-reporter.git
+          cd k6-html-reporter && npm install
+
+      - name: Generate HTML from JSON
+        run: |
+          cd k6-html-reporter
+          node ./report.js ../load-test-result.json ../load-test-report.html
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
