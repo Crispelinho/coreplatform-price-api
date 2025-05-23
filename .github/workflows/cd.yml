@@ -42,16 +42,16 @@ jobs:
 
       - name: Test HTTP response
         run: |
-            for i in {1..10}; do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
-              if [ "$STATUS" = "200" ]; then
-                echo "Service is up!"
-                break
-              else
-                echo "Waiting for service... status: $STATUS"
-                sleep 2
-              fi
-            done
+          for i in {1..10}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Service is up!"
+              break
+            else
+              echo "Waiting for service... status: $STATUS"
+              sleep 2
+            fi
+          done
 
       - name: Wait for container to initialize
         run: sleep 10
@@ -61,7 +61,7 @@ jobs:
 
       - name: List running containers
         run: docker ps -a
-      
+
       - name: Install k6
         run: |
           sudo apt update
@@ -79,15 +79,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Clone and Set Up k6-reporter
-        run: |
-          git clone https://github.com/benc-uk/k6-reporter.git
-          cd k6-reporter
-          npm install
-          npm run build
+      - name: Install k6-reporter
+        run: npm install -g k6-reporter
 
       - name: Generate HTML Report from JSON
-        run: node k6-reporter/dist/index.js load-test-result.json -o load-test-report.html
+        run: k6-reporter load-test-result.json -o load-test-report.html
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
