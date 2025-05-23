@@ -6,6 +6,7 @@ on:
       - main
       - feature/add-ci-cd-pipeline
       - 'release/*'
+      - hotfix/*
     tags:
       - 'v*'
 
