@@ -1,0 +1,37 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ feature/add-ci-cd-pipeline ]
+    tags:
+      - 'v*'  # Se ejecuta al crear un tag como v1.0.0
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t inditexcoreplatform/price-service:${{ github.ref_name }} .
+
+      - name: Push Docker image
+        run: docker push inditexcoreplatform/price-service:${{ github.ref_name }}
+
+      - name: Pull and Run Latest Image
+        run: |
+          docker pull inditexcoreplatform/price-service:${{ github.ref_name }}
+          docker stop price-service || true
+          docker rm price-service || true
+          docker run -d -p 8080:8080 inditexcoreplatform/price-service:${{ github.ref_name }}
