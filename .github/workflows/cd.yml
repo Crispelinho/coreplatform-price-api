@@ -79,11 +79,15 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install k6-reporter
-        run: npm install -g k6-reporter
+      - name: Clone and Set Up k6-reporter
+        run: |
+          git clone https://github.com/benc-uk/k6-reporter.git
+          cd k6-reporter
+          npm install
+          npm run build
 
       - name: Generate HTML Report from JSON
-        run: k6-reporter load-test-result.json -o load-test-report.html
+        run: node k6-reporter/dist/bundle.js ../load-test-result.json -o ../load-test-report.html
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
