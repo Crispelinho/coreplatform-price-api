@@ -2,14 +2,18 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ feature/add-ci-cd-pipeline ]
+    branches: 
+      - feature/add-ci-cd-pipeline
+      - 'release/*'
+      - develop
+      - main
   pull_request:
   create:
 
 jobs:
   build:
     # Ejecuta solo si:
-    # - Es un push a feature/add-ci-cd-pipeline
+    # - Es un push a feature/add-ci-cd-pipeline, develop, main o release/*
     # - Se crea un pull_request a cualquier rama
     # - Se crea una rama con prefijo release/v
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'create' && github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/v'))
