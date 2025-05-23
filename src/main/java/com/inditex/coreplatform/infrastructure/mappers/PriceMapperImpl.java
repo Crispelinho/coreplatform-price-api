@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.persistence.entities.PriceEntity;
-import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
 
 @Component
 public class PriceMapperImpl implements PriceMapper {
