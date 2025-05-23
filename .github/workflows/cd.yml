@@ -64,7 +64,6 @@ jobs:
 
       - name: List running containers
         run: docker ps -a
-
       - name: Install k6
         run: |
           sudo apt update
