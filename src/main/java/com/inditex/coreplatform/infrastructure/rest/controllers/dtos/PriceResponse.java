@@ -1,4 +1,4 @@
-package com.inditex.coreplatform.infrastructure.rest.controllers.responses;
+package com.inditex.coreplatform.infrastructure.rest.controllers.dtos;
 
 import java.time.LocalDateTime;
 

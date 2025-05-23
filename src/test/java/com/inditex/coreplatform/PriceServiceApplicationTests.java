@@ -8,6 +8,7 @@ class PriceServiceApplicationTests {
 
 	@Test
 	void contextLoads() {
+		PriceServiceApplication.main(new String[] {});
 	}
 
 }

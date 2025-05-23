@@ -14,9 +14,8 @@ import com.inditex.coreplatform.application.service.PriceService;
 import com.inditex.coreplatform.application.usecases.GetApplicablePriceUseCase;
 import com.inditex.coreplatform.application.usecases.GetPricesUseCase;
 import com.inditex.coreplatform.application.usecases.queries.GetApplicablePriceQuery;
-import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.mappers.PriceMapper;
-import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
@@ -34,19 +33,18 @@ public class PriceController {
                 this.priceMapper = priceMapper;
         }
 
-        @GetMapping(value = "/prices", produces = MediaType.APPLICATION_NDJSON_VALUE)
-        public Mono<ResponseEntity<Flux<Price>>> getPrices() {
+        @GetMapping(value = "/prices", produces = MediaType.APPLICATION_JSON_VALUE)
+        public Mono<ResponseEntity<Flux<PriceResponse>>> getPrices() {
                 GetPricesUseCase getPricesUseCase = new GetPricesUseCase(priceService);
+                Flux<PriceResponse> pricesResponse = getPricesUseCase.execute().map(priceMapper::toResponse);
 
-                Flux<Price> prices = getPricesUseCase.execute();
-
-                return prices.hasElements()
+                return pricesResponse.hasElements()
                                 .flatMap(hasElements -> hasElements
-                                                ? Mono.just(ResponseEntity.ok(prices))
+                                                ? Mono.just(ResponseEntity.ok(pricesResponse))
                                                 : Mono.just(ResponseEntity.notFound().build()));
         }
 
-        @GetMapping(value = "/applicationPrices", produces = MediaType.APPLICATION_NDJSON_VALUE)
+        @GetMapping(value = "/applicationPrices", produces = MediaType.APPLICATION_JSON_VALUE)
         public Mono<ResponseEntity<PriceResponse>> getPricesByProduct(
                         @RequestParam("productId") @NotNull Integer productId,
                         @RequestParam("brandId") @NotNull Integer brandId,
@@ -56,7 +54,8 @@ public class PriceController {
                 GetApplicablePriceQuery query = new GetApplicablePriceQuery(productId, brandId, applicationDate);
 
                 return getApplicablePriceUseCase.execute(query)
-                                .map(priceMapper::toResponse).map(ResponseEntity::ok)
+                                .map(priceMapper::toResponse)
+                                .map(ResponseEntity::ok)
                                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
         }
 }
