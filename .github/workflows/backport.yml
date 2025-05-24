@@ -56,9 +56,12 @@ jobs:
                 --pr "$PR_NUMBER" \
                 --branch "$branch" \
                 --nonInteractive=false \
+                --commitConflicts=true \
+                --assignee cristhian-carpio \
                 --copySourcePRLabels \
                 --copySourcePRReviewers \
-                --prTitle "Backport automático del PR #$PR_NUMBER a '$branch'" \
+                --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
+                --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
                 --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
 
               EXIT_CODE=$?
