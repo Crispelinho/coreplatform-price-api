@@ -44,7 +44,7 @@ jobs:
             PR_NUMBER=8
             fi
 
-            BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
+            BRANCHES="develop"
             for branch in $BRANCHES; do
             echo "Backporting PR $PR_NUMBER to $branch"
             backport \
