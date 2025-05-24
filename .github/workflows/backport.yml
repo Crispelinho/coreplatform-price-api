@@ -1,8 +1,7 @@
 name: 🔁 Backport on merge to main
-
 on:
   push:
-    branches:
+    branches: 
       - hotfix/v1.0.2-add-backport-pipeline
   pull_request:
     types: [closed]
@@ -11,7 +10,9 @@ on:
 
 jobs:
   backport:
-    if: github.event.pull_request.merged == true
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/hotfix/v1.0.2-add-backport-pipeline')
     runs-on: ubuntu-latest
 
     steps:
@@ -40,5 +41,5 @@ jobs:
             --accessToken $GITHUB_TOKEN \
             --repoOwner Crispelinho \
             --repoName coreplatform-price-api \
-            --pr ${{ github.event.pull_request.number }} \
+            --pr ${{ github.event.pull_request.number || '0' }} \
             --targetBranches develop ${{ steps.release_branches.outputs.branches }}
