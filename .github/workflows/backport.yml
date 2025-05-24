@@ -53,14 +53,12 @@ jobs:
                 --access-token "$GITHUB_TOKEN" \
                 --repo-owner Crispelinho \
                 --repo-name coreplatform-price-api \
-                --pull-number "$PR_NUMBER" \
-                --target-branch "$branch" \
-                --interactive=false \
-                --commit-conflicts=true \
-                --assignee cristhian-carpio \
+                --pr "$PR_NUMBER" \
+                --branch "$branch" \
+                --nonInteractive=false \
                 --copySourcePRLabels \
                 --copySourcePRReviewers \
-                --pr-description "Backport automático del PR #$PR_NUMBER a '$branch'" \
+                --prTitle "Backport automático del PR #$PR_NUMBER a '$branch'" \
                 --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
 
               EXIT_CODE=$?
