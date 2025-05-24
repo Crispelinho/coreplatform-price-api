@@ -40,12 +40,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
-          for branch in $BRANCHES; do
-            echo "Backporting to $branch"
-            backport \
-              --accessToken $GITHUB_TOKEN \
-              --repoOwner Crispelinho \
-              --repoName coreplatform-price-api \
-              --pr ${{ github.event.pull_request.number }} || 8 \
-              --targetBranchChoices "$branch"
-          done
+          backport \
+            --accessToken $GITHUB_TOKEN \
+            --repoOwner Crispelinho \
+            --repoName coreplatform-price-api \
+            --pr ${{ github.event.pull_request.number }} || 8 \
+            --branch "$BRANCHES"
