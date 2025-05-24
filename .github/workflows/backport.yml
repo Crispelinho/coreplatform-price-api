@@ -47,12 +47,17 @@ jobs:
             BRANCHES="develop"
             for branch in $BRANCHES; do
             echo "Backporting PR $PR_NUMBER to $branch"
-            backport \
-                --accessToken $GITHUB_TOKEN \
+            if printf "Y\n" | backport \
+                --accessToken "$GITHUB_TOKEN" \
                 --repoOwner Crispelinho \
                 --repoName coreplatform-price-api \
                 --pr "$PR_NUMBER" \
                 --branch "$branch"
-                --non-interactive || echo "⚠️ Conflicto al hacer backport a $branch. Requiere resolución manual."
+            then
+                echo "Backport to $branch successful."
+            else
+                echo "⚠️ Conflicto al hacer backport a $branch. Requiere resolución manual."
+            fi
             done
+
 
