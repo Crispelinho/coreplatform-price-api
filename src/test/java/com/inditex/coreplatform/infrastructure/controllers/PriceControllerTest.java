@@ -171,4 +171,36 @@ public class PriceControllerTest {
                 .expectStatus().isNotFound();
     }
 
+    @Test
+    void testGetPricesReturnsJsonContentType() {
+        webTestClient.get()
+                .uri("/prices")
+                .exchange()
+                .expectHeader().contentTypeCompatibleWith("application/json");
+    }
+
+    @Test
+    void executeReturnsEmptyFlux() {
+        PriceService priceService = Mockito.mock(PriceService.class);
+        when(priceService.getAllPrices()).thenReturn(Flux.empty());
+
+        GetPricesUseCase useCase = new GetPricesUseCase(priceService);
+
+        StepVerifier.create(useCase.execute())
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    void testApplicationPricesReturnsNotFoundForNonExisting() {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(BASE_URL)
+                        .queryParam("productId", 999999)
+                        .queryParam("brandId", 999)
+                        .queryParam("applicationDate", "2030-01-01T00:00:00")
+                        .build())
+                .exchange()
+                .expectStatus().isNotFound();
+    }
 }

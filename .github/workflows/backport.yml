@@ -1,0 +1,45 @@
+name: 🔁 Backport on merge to main
+on:
+  push:
+    branches: 
+      - hotfix/v1.0.2-add-backport-pipeline
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  backport:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/hotfix/v1.0.2-add-backport-pipeline')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Backport CLI
+        run: npm install -g backport
+
+      - name: Get list of release/* branches
+        id: release_branches
+        run: |
+          RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | cut -d/ -f3-)
+          echo "branches=$(echo $RELEASE_BRANCHES | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Run Backport to develop and release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          backport \
+            --accessToken $GITHUB_TOKEN \
+            --repoOwner Crispelinho \
+            --repoName coreplatform-price-api \
+            --pr ${{ github.event.pull_request.number || '0' }} \
+            --targetBranches develop ${{ steps.release_branches.outputs.branches }}
