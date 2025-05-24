@@ -46,6 +46,6 @@ jobs:
               --accessToken $GITHUB_TOKEN \
               --repoOwner Crispelinho \
               --repoName coreplatform-price-api \
-              --pr ${{ github.event.pull_request.number }} \
-              --branch "$branch"
+              --pr ${{ github.event.pull_request.number }} || 8 \
+              --targetBranchChoices "$branch"
           done
