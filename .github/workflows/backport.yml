@@ -44,21 +44,34 @@ jobs:
             PR_NUMBER=8
             fi
 
-            BRANCHES="develop"
+            BRANCHES="develop release/v1.0.0 release/v1.0.1"
             for branch in $BRANCHES; do
             echo "Backporting PR $PR_NUMBER to $branch"
-            if printf "Y\n" | backport \
+            
+            # Ejecutar backport y capturar salida y código de error
+            OUTPUT=$(backport \
                 --accessToken "$GITHUB_TOKEN" \
                 --repoOwner Crispelinho \
                 --repoName coreplatform-price-api \
                 --pr "$PR_NUMBER" \
-                --branch "$branch"
-            then
-                echo "Backport to $branch successful."
+                --branch "$branch" 2>&1)
+            EXIT_CODE=$?
+
+            echo "$OUTPUT"
+
+            if [ $EXIT_CODE -ne 0 ]; then
+                if echo "$OUTPUT" | grep -q "commit .* is empty"; then
+                echo "⚠️ Commit ya backporteado en la rama $branch, no se necesita acción."
+                else
+                echo "❌ Error al hacer backport en la rama $branch. Requiere intervención manual."
+                # Opcional: salir con error para detener workflow o continuar
+                # exit 1
+                fi
             else
-                echo "⚠️ Conflicto al hacer backport a $branch. Requiere resolución manual."
+                echo "✅ Backport a $branch exitoso."
             fi
             done
+
 
 
 
