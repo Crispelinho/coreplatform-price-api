@@ -170,5 +170,4 @@ public class PriceControllerTest {
                 .exchange()
                 .expectStatus().isNotFound();
     }
-
 }
