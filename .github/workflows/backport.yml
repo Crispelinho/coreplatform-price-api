@@ -53,5 +53,6 @@ jobs:
                 --repoName coreplatform-price-api \
                 --pr "$PR_NUMBER" \
                 --branch "$branch"
+                --non-interactive || echo "⚠️ Conflicto al hacer backport a $branch. Requiere resolución manual."
             done
 
