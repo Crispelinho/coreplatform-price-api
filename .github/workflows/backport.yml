@@ -39,10 +39,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
-          backport \
-            --accessToken $GITHUB_TOKEN \
-            --repoOwner Crispelinho \
-            --repoName coreplatform-price-api \
-            --pr ${{ github.event.pull_request.number }} || 8 \
-            --branch "$BRANCHES"
+          for branch in develop release/v1.0.0 release/v1.0.1; do
+            echo "Backporting PR 8 to $branch"
+            backport \
+              --accessToken $GITHUB_TOKEN \
+              --repoOwner Crispelinho \
+              --repoName coreplatform-price-api \
+              --pr ${{ github.event.pull_request.number }} || 8 \
+              --branch "$branch"
+          done
