@@ -1,4 +1,4 @@
-name: 🔁 Backport on hotfix merge to main
+name: 🔁 Backport on merge to main
 
 on:
   pull_request:
@@ -8,9 +8,7 @@ on:
 
 jobs:
   backport:
-    if: |
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'hotfix/')
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:

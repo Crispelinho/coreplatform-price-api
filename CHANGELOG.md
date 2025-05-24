@@ -4,9 +4,7 @@ Todas las modificaciones importantes de este proyecto se documentarán en este a
 
 ## [1.0.2] - 2025-05-23
 ### Añadido
-- Acción automática de backport para merges en `main`, que crea PRs hacia `develop` con etiqueta `backport-to-`.
-- Pipeline CD actualizado para soportar despliegues automáticos en ramas `hotfix/*`.
-- Integración de pruebas de carga con k6 y generación de reportes HTML en el pipeline de CD.
+- Acción automática de backport para merges contra `main`, que crea PRs hacia `develop` o ramas `release/**`.
 
 ## [1.0.1] - 2025-05-23
 ### Añadido
