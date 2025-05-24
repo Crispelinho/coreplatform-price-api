@@ -55,8 +55,7 @@ jobs:
                 --repo-name coreplatform-price-api \
                 --pr "$PR_NUMBER" \
                 --branch "$branch" \
-                --nonInteractive=false \
-                --commitConflicts=true \
+                --commitConflicts \
                 --assignee cristhian-carpio \
                 --copySourcePRLabels \
                 --copySourcePRReviewers \
@@ -66,6 +65,7 @@ jobs:
 
               EXIT_CODE=$?
 
+              echo "::error::Salida del comando backport:"
               echo "$OUTPUT"
 
               if [ $EXIT_CODE -ne 0 ]; then
