@@ -44,7 +44,7 @@ jobs:
             PR_NUMBER=8
             fi
 
-            BRANCHES="develop release/v1.0.0 release/v1.0.1"
+            BRANCHES="develop"
             for branch in $BRANCHES; do
             echo "Backporting PR $PR_NUMBER to $branch"
             
@@ -61,11 +61,13 @@ jobs:
 
             if [ $EXIT_CODE -ne 0 ]; then
                 if echo "$OUTPUT" | grep -q "commit .* is empty"; then
-                echo "⚠️ Commit ya backporteado en la rama $branch, no se necesita acción."
+                    echo "⚠️ Commit ya backporteado en la rama $branch, no se necesita acción."
+                elif echo "$OUTPUT" | grep -q "Please fix the conflicts"; then
+                    echo "Y\n"
+                    echo "⚠️ Conflictos encontrados al hacer backport a $branch. Requiere resolución manual."
                 else
-                echo "❌ Error al hacer backport en la rama $branch. Requiere intervención manual."
-                # Opcional: salir con error para detener workflow o continuar
-                # exit 1
+                    echo "❌ Error desconocido al hacer backport en la rama $branch. Requiere revisión."
+                    # exit 1  # opcional detener workflow
                 fi
             else
                 echo "✅ Backport a $branch exitoso."
