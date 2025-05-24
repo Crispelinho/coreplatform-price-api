@@ -1,6 +1,9 @@
 name: 🔁 Backport on merge to main
 
 on:
+  push:
+    branches:
+      - hotfix/v1.0.2-add-backport-pipeline
   pull_request:
     types: [closed]
     branches:
