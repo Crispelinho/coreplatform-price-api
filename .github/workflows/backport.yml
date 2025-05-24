@@ -1,20 +1,20 @@
 name: 🔁 Backport on merge to main
 
 on:
+  push:
+    branches: 
+      - hotfix/v1.0.2-add-backport-pipeline
   pull_request:
     types: [closed]
     branches:
       - main
-  pull_request_target:
-    types: [opened]
-    branches:
-      - hotfix/v1.0.2-add-backport-pipeline
 
 jobs:
   backport:
     if: |
-      (github.event.pull_request.merged == true) || 
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
       (github.event.pull_request.head.ref == 'hotfix/v1.0.2-add-backport-pipeline')
+    
     runs-on: ubuntu-latest
 
     steps:
