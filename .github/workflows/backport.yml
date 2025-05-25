@@ -75,10 +75,13 @@ jobs:
                 echo "⚠️ Conflictos encontrados en '$branch'. Se creó PR para resolverlos manualmente."
               elif echo "$OUTPUT" | grep -q "The PR #$PR_NUMBER is not merged"; then
                 echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
+              elif echo "$OUTPUT" | grep -q "Cherrypick failed because commit .* was not found"; then
+                echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
               else
                 echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
               fi
             else
               echo "✅ Backport a '$branch' realizado con éxito."
             fi
+
           done
