@@ -56,7 +56,7 @@ jobs:
                 --pr "$PR_NUMBER" \
                 --branch "$branch" \
                 --commitConflicts \
-                --assignee cristhian-carpio \
+                --assignee Crispelinho \
                 --copySourcePRLabels \
                 --copySourcePRReviewers \
                 --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
