@@ -82,4 +82,3 @@ jobs:
               echo "✅ Backport a '$branch' realizado con éxito."
             fi
           done
-
