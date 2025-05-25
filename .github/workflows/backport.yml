@@ -41,7 +41,7 @@ jobs:
         run: |
             PR_NUMBER="${{ github.event.pull_request.number }}"
             if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=9
+            PR_NUMBER=8
             fi
 
             BRANCHES="develop"
