@@ -1,4 +1,5 @@
 name: 🔁 Backport on merge to main
+
 on:
   push:
     branches: 
@@ -13,6 +14,7 @@ jobs:
     if: |
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/hotfix/v1.0.2-add-backport-pipeline')
+    
     runs-on: ubuntu-latest
 
     steps:
@@ -35,11 +37,48 @@ jobs:
 
       - name: Run Backport to develop and release/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          backport \
-            --accessToken $GITHUB_TOKEN \
-            --repoOwner Crispelinho \
-            --repoName coreplatform-price-api \
-            --pr ${{ github.event.pull_request.number || '0' }} \
-            --targetBranches develop ${{ steps.release_branches.outputs.branches }}
+          PR_NUMBER=""
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER=8
+          fi
+
+          BRANCHES="develop"
+          for branch in $BRANCHES; do
+            echo "➡️ Backporting PR #$PR_NUMBER to branch '$branch'..."
+
+            # Ejecutar backport y capturar salida y código de error
+            OUTPUT=$(backport \
+              --access-token "$GITHUB_TOKEN" \
+              --repo-owner Crispelinho \
+              --repo-name coreplatform-price-api \
+              --pr "$PR_NUMBER" \
+              --branch "$branch" \
+              --commitConflicts true\
+              --nonInteractive true\
+              --assignee Crispelinho \
+              --copySourcePRLabels \
+              --copySourcePRReviewers \
+              --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
+              --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
+              --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
+
+            EXIT_CODE=$?
+
+            echo "$OUTPUT"
+
+            if [ $EXIT_CODE -ne 0 ]; then
+              if echo "$OUTPUT" | grep -q "is empty. Did you already backport this commit?"; then
+                echo "⚠️ El commit ya está presente en '$branch'. No es necesario realizar backport."
+              elif echo "$OUTPUT" | grep -q "Please fix the conflicts"; then
+                echo "⚠️ Conflictos encontrados en '$branch'. Se creó PR para resolverlos manualmente."
+              elif echo "$OUTPUT" | grep -q "The PR #$PR_NUMBER is not merged"; then
+                echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
+              else
+                echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
+              fi
+            else
+              echo "✅ Backport a '$branch' realizado con éxito."
+            fi
+          done
