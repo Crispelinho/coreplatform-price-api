@@ -55,8 +55,8 @@ jobs:
               --repo-name coreplatform-price-api \
               --pr "$PR_NUMBER" \
               --branch "$branch" \
-              --nonInteractive \
-              --commitConflicts \
+              --commitConflicts true\
+              --nonInteractive true\
               --assignee Crispelinho \
               --copySourcePRLabels \
               --copySourcePRReviewers \
@@ -73,6 +73,8 @@ jobs:
                 echo "⚠️ El commit ya está presente en '$branch'. No es necesario realizar backport."
               elif echo "$OUTPUT" | grep -q "Please fix the conflicts"; then
                 echo "⚠️ Conflictos encontrados en '$branch'. Se creó PR para resolverlos manualmente."
+              elif echo "$OUTPUT" | grep -q "The PR #$PR_NUMBER is not merged"; then
+                echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
               else
                 echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
               fi
