@@ -61,5 +61,5 @@ jobs:
                 --copySourcePRReviewers \
                 --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
                 --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
-                --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
+                --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1
             done
