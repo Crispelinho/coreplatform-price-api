@@ -39,27 +39,46 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            if [ -z "$PR_NUMBER" ]; then
+          PR_NUMBER=""
+          if [ -z "$PR_NUMBER" ]; then
             PR_NUMBER=8
-            fi
+          fi
 
-            BRANCHES="develop"
-            for branch in $BRANCHES; do
-              echo "➡️ Backporting PR #$PR_NUMBER to branch '$branch'..."
-              
-              # Ejecutar backport y capturar salida y código de error
-              backport \
-                --access-token "$GITHUB_TOKEN" \
-                --repo-owner Crispelinho \
-                --repo-name coreplatform-price-api \
-                --pr "$PR_NUMBER" \
-                --branch "$branch" \
-                --commitConflicts \
-                --assignee Crispelinho \
-                --copySourcePRLabels \
-                --copySourcePRReviewers \
-                --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
-                --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
-                --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1
-            done
+          BRANCHES="develop"
+          for branch in $BRANCHES; do
+            echo "➡️ Backporting PR #$PR_NUMBER to branch '$branch'..."
+
+            # Ejecutar backport y capturar salida y código de error
+            OUTPUT=$(backport \
+              --access-token "$GITHUB_TOKEN" \
+              --repo-owner Crispelinho \
+              --repo-name coreplatform-price-api \
+              --pr "$PR_NUMBER" \
+              --branch "$branch" \
+              --commitConflicts true\
+              --nonInteractive true\
+              --assignee Crispelinho \
+              --copySourcePRLabels \
+              --copySourcePRReviewers \
+              --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
+              --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
+              --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
+
+            EXIT_CODE=$?
+
+            echo "$OUTPUT"
+
+            if [ $EXIT_CODE -ne 0 ]; then
+              if echo "$OUTPUT" | grep -q "is empty. Did you already backport this commit?"; then
+                echo "⚠️ El commit ya está presente en '$branch'. No es necesario realizar backport."
+              elif echo "$OUTPUT" | grep -q "Please fix the conflicts"; then
+                echo "⚠️ Conflictos encontrados en '$branch'. Se creó PR para resolverlos manualmente."
+              elif echo "$OUTPUT" | grep -q "The PR #$PR_NUMBER is not merged"; then
+                echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
+              else
+                echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
+              fi
+            else
+              echo "✅ Backport a '$branch' realizado con éxito."
+            fi
+          done
