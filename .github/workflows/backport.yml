@@ -55,8 +55,8 @@ jobs:
               --repo-name coreplatform-price-api \
               --pr "$PR_NUMBER" \
               --branch "$branch" \
-              --commitConflicts true\
-              --nonInteractive true\
+              --commitConflicts true \
+              --nonInteractive true \
               --assignee Crispelinho \
               --copySourcePRLabels \
               --copySourcePRReviewers \
@@ -77,6 +77,9 @@ jobs:
                 echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
               elif echo "$OUTPUT" | grep -q "Cherrypick failed because commit .* was not found"; then
                 echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
+              elif echo "$OUTPUT" | grep -q "An unhandled error occurred while backporting commit"; then
+                echo "❌ Ocurrió un error no manejado durante el backport. Mostrando el log de backport:"
+                cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
               else
                 echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
               fi
