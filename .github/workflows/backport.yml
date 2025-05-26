@@ -86,11 +86,11 @@ jobs:
               echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
             else
               echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
-            
+            fi
+
             echo "🔍 Se imprime log backport:"
             cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
 
-            fi
           else
             # Éxito si contiene el link del PR
             if echo "$OUTPUT" | grep -q "View pull request: https://github.com/.*/pull/[0-9]\+"; then
@@ -98,6 +98,7 @@ jobs:
                 echo "❌ Ocurrió un error no manejado durante el backport. Mostrando el log de backport:"
               else
                 echo "✅ Backport a '$branch' realizado con éxito."
+              fi
             else
               echo "⚠️ El comando terminó sin error, pero no se encontró el enlace del PR. Revisión necesaria."
               echo "🔍 Output:"
