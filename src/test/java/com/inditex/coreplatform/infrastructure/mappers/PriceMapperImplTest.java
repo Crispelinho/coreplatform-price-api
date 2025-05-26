@@ -2,7 +2,12 @@ package com.inditex.coreplatform.infrastructure.mappers;
 
 import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.persistence.entities.PriceEntity;
+<<<<<<< HEAD
 import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
+=======
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
+
+>>>>>>> 3f0df6d (Hotfix/v1.0.2 add backport pipeline (#22))
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;

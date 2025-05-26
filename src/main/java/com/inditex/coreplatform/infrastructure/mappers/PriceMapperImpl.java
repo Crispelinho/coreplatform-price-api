@@ -4,7 +4,11 @@ import org.springframework.stereotype.Component;
 
 import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.persistence.entities.PriceEntity;
+<<<<<<< HEAD
 import com.inditex.coreplatform.infrastructure.rest.controllers.responses.PriceResponse;
+=======
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
+>>>>>>> 3f0df6d (Hotfix/v1.0.2 add backport pipeline (#22))
 
 @Component
 public class PriceMapperImpl implements PriceMapper {
