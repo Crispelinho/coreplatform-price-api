@@ -41,7 +41,7 @@ jobs:
         run: |
           PR_NUMBER=""
           if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=8
+            PR_NUMBER=18
           fi
 
           BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
