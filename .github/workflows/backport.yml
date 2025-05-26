@@ -16,6 +16,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/hotfix/v1.0.2-add-backport-pipeline')
     
     runs-on: ubuntu-latest
+    timeout-minutes: 2
 
     steps:
       - name: Checkout repo
@@ -39,9 +40,14 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=""
+          PR_NUMBER="${{ github.event.pull_request.number }}"
           if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=18
+            PR_NUMBER=17
+          fi
+
+          RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | awk '{print $2}' | sed 's#refs/heads/##')
+          if [ -z "$RELEASE_BRANCHES" ]; then
+            echo "⚠️ No se encontraron ramas release/*. Solo se hará backport a 'develop'."
           fi
 
           BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
@@ -86,7 +92,7 @@ jobs:
               echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
             else
               echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
-            fi
+            fi  
 
             echo "🔍 Se imprime log backport:"
             cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
