@@ -33,8 +33,8 @@ jobs:
       - name: Get list of release/* branches
         id: release_branches
         run: |
-          RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | cut -d/ -f3-)
-          echo "branches=$(echo $RELEASE_BRANCHES | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | awk '{print $2}' | sed 's#refs/heads/##')
+          echo "branches=$RELEASE_BRANCHES" >> "$GITHUB_OUTPUT"
 
       - name: Run Backport to develop and release/*
         env:

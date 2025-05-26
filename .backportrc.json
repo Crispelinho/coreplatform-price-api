@@ -1,8 +1,7 @@
 {
-  "repoOwner": "Crispelinho",
-  "repoName": "coreplatform-price-api",
+  "repo": "Crispelinho/coreplatform-price-api",
   "accessToken": "${GITHUB_TOKEN}",
-  "assignees": ["Crispelinho"],
+  "assignees": "Crispelinho",
   "copySourcePRLabels": true,
   "copySourcePRReviewers": true,
   "commitConflicts": true,
