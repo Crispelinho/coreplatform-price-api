@@ -27,6 +27,22 @@ jobs:
         with:
           node-version: 18
 
+      - name: Ensure git is installed
+        run: |
+          sudo apt-get update
+          sudo apt-get install git -y
+
+      - name: Debug path and git
+        run: |
+          echo "PATH=$PATH"
+          which git
+          git --version
+          node -e "require('child_process').exec('git --version', (err, stdout, stderr) => {
+            if (err) console.error('ERROR:', err);
+            console.log('stdout:', stdout);
+            console.error('stderr:', stderr);
+          })"
+        
       - name: Install Backport CLI
         run: npm install -g backport
 
