@@ -27,11 +27,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Ensure git is installed
-        run: |
-          sudo apt-get update
-          sudo apt-get install git -y
-
       - name: Debug path and git
         run: |
           echo "PATH=$PATH"
@@ -42,6 +37,9 @@ jobs:
             console.log('stdout:', stdout);
             console.error('stderr:', stderr);
           })"
+
+      - name: Add git to PATH explicitly
+        run: echo "/usr/bin" >> $GITHUB_PATH
         
       - name: Install Backport CLI
         run: npm install -g backport
@@ -53,18 +51,13 @@ jobs:
           if [ -z "$RELEASE_BRANCHES" ]; then
             echo "branches="
           else
-            echo "branches=$(echo $RELEASE_BRANCHES | tr '\n' ' ')"
+            echo "branches=$(echo $RELEASE_BRANCHES | tr '\n' ' ')"  >> $GITHUB_OUTPUT
           fi
 
       - name: Run Backport to develop and release/*
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$GITHUB_TOKEN" ]; then
-            echo "❌ El token de GitHub no está configurado. Abortando."
-            exit 1
-          fi
-
           PR_NUMBER="${{ github.event.pull_request.number }}"
           if [ -z "$PR_NUMBER" ]; then
             PR_NUMBER=18
@@ -86,7 +79,7 @@ jobs:
           for branch in $BRANCHES; do
             echo "➡️ Backporting PR #$PR_NUMBER to branch '$branch'..."
 
-            OUTPUT=$(backport \
+            OUTPUT=$(npx backport \
               --accessToken "$GITHUB_TOKEN" \
               --repo Crispelinho/coreplatform-price-api \
               --pr "$PR_NUMBER" \
