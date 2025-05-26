@@ -16,6 +16,7 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/hotfix/v1.0.2-add-backport-pipeline')
     
     runs-on: ubuntu-latest
+    timeout-minutes: 2
 
     steps:
       - name: Checkout repo
@@ -39,12 +40,22 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER=""
+          PR_NUMBER="${{ github.event.pull_request.number }}"
           if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=8
+            PR_NUMBER=17
           fi
 
-          BRANCHES="develop"
+          RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | awk '{print $2}' | sed 's#refs/heads/##')
+          if [ -z "$RELEASE_BRANCHES" ]; then
+            echo "⚠️ No se encontraron ramas release/*. Solo se hará backport a 'develop'."
+          fi
+
+          BRANCHES="develop ${{ steps.release_branches.outputs.branches }}"
+          if [ -z "$BRANCHES" ]; then
+            echo "⚠️ No se encontraron ramas destino para hacer backport. Abortando."
+            exit 0
+          fi
+
           for branch in $BRANCHES; do
             echo "➡️ Backporting PR #$PR_NUMBER to branch '$branch'..."
 
@@ -58,16 +69,18 @@ jobs:
               --commitConflicts true\
               --nonInteractive true\
               --assignee Crispelinho \
-              --copySourcePRLabels \
-              --copySourcePRReviewers \
+              --copySourcePRLabels true \
+              --copySourcePRReviewers true \
               --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
               --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
               --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
 
-            EXIT_CODE=$?
+            sleep 5 # Esperar 5 segundos para evitar problemas de rate limit  
 
+            EXIT_CODE=$?
             echo "$OUTPUT"
 
+<<<<<<< HEAD
             if [ $EXIT_CODE -ne 0 ]; then
               if echo "$OUTPUT" | grep -q "is empty. Did you already backport this commit?"; then
                 echo "⚠️ El commit ya está presente en '$branch'. No es necesario realizar backport."
@@ -77,11 +90,39 @@ jobs:
                 echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
               elif echo "$OUTPUT" | grep -q "Cherrypick failed because commit .* was not found"; then
                 echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
+=======
+          if [ $EXIT_CODE -ne 0 ]; then
+            # Manejo de errores conocidos
+            if echo "$OUTPUT" | grep -q "is empty. Did you already backport this commit?"; then
+              echo "⚠️ El commit ya está presente en '$branch'. No es necesario realizar backport."
+            elif echo "$OUTPUT" | grep -q "Please fix the conflicts"; then
+              echo "⚠️ Conflictos encontrados en '$branch'. Se creó PR para resolverlos manualmente."
+            elif echo "$OUTPUT" | grep -q "The PR #$PR_NUMBER is not merged"; then
+              echo "⚠️ El PR #$PR_NUMBER aún no ha sido mergeado. No se puede hacer backport."
+            elif echo "$OUTPUT" | grep -q "Cherrypick failed because commit .* was not found"; then
+              echo "⚠️ No se encontró el commit original para hacer cherry-pick. Puede que el PR haya cambiado o el SHA no exista."
+            else
+              echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
+            fi  
+
+            echo "🔍 Se imprime log backport:"
+            cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
+
+          else
+            # Éxito si contiene el link del PR
+            if echo "$OUTPUT" | grep -q "View pull request: https://github.com/.*/pull/[0-9]\+"; then
+              if echo "$OUTPUT" | grep -q "An unhandled error occurred while backporting commit"; then
+                echo "❌ Ocurrió un error no manejado durante el backport. Mostrando el log de backport:"
+>>>>>>> 108b9d7 (Hotfix/v1.0.2 add backport pipeline (#18))
               else
-                echo "❌ Error desconocido durante el backport a '$branch'. Revisión necesaria."
+                echo "✅ Backport a '$branch' realizado con éxito."
               fi
             else
-              echo "✅ Backport a '$branch' realizado con éxito."
+              echo "⚠️ El comando terminó sin error, pero no se encontró el enlace del PR. Revisión necesaria."
+              echo "🔍 Output:"
+              echo "$OUTPUT"
+              echo "🔍 Se imprime log backport:"
+              cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
             fi
-
+          fi
           done
