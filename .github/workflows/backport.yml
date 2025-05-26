@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   backport:
     if: |
@@ -89,6 +93,8 @@ jobs:
               --assignee Crispelinho \
               --copySourcePRLabels true \
               --copySourcePRReviewers true \
+              --fork false \
+              --forkOwner Crispelinho \
               --prTitle "Backport PR #$PR_NUMBER to '$branch'" \
               --prDescription "Backport automático del PR #$PR_NUMBER a '$branch'" \
               --backportBranchName "backport/pr-$PR_NUMBER-to-$branch" 2>&1)
