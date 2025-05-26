@@ -1,0 +1,13 @@
+{
+  "repoOwner": "Crispelinho",
+  "repoName": "coreplatform-price-api",
+  "accessToken": "${GITHUB_TOKEN}",
+  "assignees": ["Crispelinho"],
+  "copySourcePRLabels": true,
+  "copySourcePRReviewers": true,
+  "commitConflicts": true,
+  "autoAssign": true,
+  "nonInteractive": true,
+  "prTitle": "Backport PR #{pullRequestNumber} to '{targetBranch}'",
+  "prDescription": "Backport automático del PR #{pullRequestNumber} a '{targetBranch}'"
+}

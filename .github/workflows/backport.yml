@@ -40,9 +40,15 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Verificar si el token de GitHub está configurado
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "❌ El token de GitHub no está configurado. Abortando."
+            exit 1
+          fi
+
           PR_NUMBER="${{ github.event.pull_request.number }}"
           if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=17
+            PR_NUMBER=18
           fi
 
           RELEASE_BRANCHES=$(git ls-remote --heads origin 'refs/heads/release/*' | awk '{print $2}' | sed 's#refs/heads/##')
@@ -61,9 +67,8 @@ jobs:
 
             # Ejecutar backport y capturar salida y código de error
             OUTPUT=$(backport \
-              --access-token "$GITHUB_TOKEN" \
-              --repo-owner Crispelinho \
-              --repo-name coreplatform-price-api \
+              --accessToken "$GITHUB_TOKEN" \
+              --repo Crispelinho/coreplatform-price-api \
               --pr "$PR_NUMBER" \
               --branch "$branch" \
               --commitConflicts true \
@@ -98,15 +103,18 @@ jobs:
             cat ~/.backport/backport.info.log || echo "⚠️ No se pudo leer el archivo de log"
 
           else
-            # Éxito si contiene el link del PR
+            # Se intenta crear el PR de backport
             if echo "$OUTPUT" | grep -q "View pull request: https://github.com/.*/pull/[0-9]\+"; then
+              # Ocurre error durante la creación del PR de backport
               if echo "$OUTPUT" | grep -q "An unhandled error occurred while backporting commit"; then
                 echo "❌ Ocurrió un error no manejado durante el backport. Mostrando el log de backport:"
               else
+                # Se creó el PR de backport con éxito
                 echo "✅ Backport a '$branch' realizado con éxito."
               fi
+            # No se creó el PR de backport, pero no hubo error, se imprime el output y el log.
             else
-              echo "⚠️ El comando terminó sin error, pero no se encontró el enlace del PR. Revisión necesaria."
+              echo "⚠️ El comando terminó sin error, no se creó el PR de backport esperado. Revisión necesaria."
               echo "🔍 Output:"
               echo "$OUTPUT"
               echo "🔍 Se imprime log backport:"
