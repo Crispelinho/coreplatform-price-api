@@ -58,6 +58,12 @@ jobs:
             echo "branches=$(echo $RELEASE_BRANCHES | tr '\n' ' ')"  >> $GITHUB_OUTPUT
           fi
 
+      - name: Verify git remotes
+        run: git remote -v
+
+      - name: Set remote origin with GitHub token
+        run: git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        
       - name: Run Backport to develop and release/*
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
