@@ -2,6 +2,7 @@ package com.inditex.coreplatform.infrastructure.persistence.entities;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -16,6 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PriceEntity {
+    @Id
+    @Column("id")
+    private Long id;
+
     @Column("brand_id")
     private Integer brandId;
 

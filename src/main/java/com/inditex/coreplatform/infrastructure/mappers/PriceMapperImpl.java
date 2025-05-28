@@ -22,7 +22,7 @@ public class PriceMapperImpl implements PriceMapper {
                 .rateId(entity.getPriceList())
                 .productId(entity.getProductId())
                 .priority(entity.getPriority())
-                .price(entity.getPrice())
+                .value(entity.getPrice())
                 .currency(entity.getCurr())
                 .build();
     }
@@ -40,7 +40,7 @@ public class PriceMapperImpl implements PriceMapper {
         entity.setPriceList(domain.getRateId());
         entity.setProductId(domain.getProductId());
         entity.setPriority(domain.getPriority());
-        entity.setPrice(domain.getPrice());
+        entity.setPrice(domain.getValue());
         entity.setCurr(domain.getCurrency());
         return entity;
     }
@@ -57,7 +57,7 @@ public class PriceMapperImpl implements PriceMapper {
                 .endDate(domain.getEndDate())
                 .rateId(domain.getRateId())
                 .productId(domain.getProductId())
-                .price(domain.getPrice())
+                .price(domain.getValue())
                 .build();
     }
 }
