@@ -1,173 +1,185 @@
 package com.inditex.coreplatform.infrastructure.controllers;
 
-import static org.mockito.Mockito.when;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.reactive.server.WebTestClient;
-
-import com.inditex.coreplatform.application.service.PriceService;
+import com.inditex.coreplatform.application.usecases.GetApplicablePriceUseCase;
 import com.inditex.coreplatform.application.usecases.GetPricesUseCase;
-
+import com.inditex.coreplatform.application.usecases.queries.GetApplicablePriceQuery;
+import com.inditex.coreplatform.domain.models.Price;
+import com.inditex.coreplatform.infrastructure.mappers.PriceMapper;
+import com.inditex.coreplatform.infrastructure.rest.controllers.PriceController;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.PriceResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import org.springframework.http.ResponseEntity;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebTestClient
-public class PriceControllerTest {
+import java.time.LocalDateTime;
 
-    @Autowired
-    private WebTestClient webTestClient;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-    private final String BASE_URL = "/applicationPrices";
+class PriceControllerTest {
 
-    @Test
-    void testCase1_14June10AM() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-14T10:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isOk();
+    private GetApplicablePriceUseCase getApplicablePriceUseCase;
+    private GetPricesUseCase getPricesUseCase;
+    private PriceMapper priceMapper;
+    private PriceController priceController;
+
+    @BeforeEach
+    void setUp() {
+        getApplicablePriceUseCase = mock(GetApplicablePriceUseCase.class);
+        getPricesUseCase = mock(GetPricesUseCase.class);
+        priceMapper = mock(PriceMapper.class);
+        priceController = new PriceController(getApplicablePriceUseCase, getPricesUseCase, priceMapper);
     }
 
     @Test
-    void testCase2_14June16PM() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-14T16:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isOk();
-    }
+    void getPrices_shouldReturnOkWithPrices_whenPricesExist() {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(1);
+        LocalDateTime endDate = LocalDateTime.now().plusDays(1);
 
-    @Test
-    void testCase3_14June21PM() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-14T21:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isOk();
-    }
+        Price price1 = Price.builder()
+                .brandId(1)
+                .startDate(startDate)
+                .endDate(endDate)
+                .rateId(1)
+                .productId(100)
+                .priority(1)
+                .value(50.0)
+                .currency("EUR")
+                .build();
 
-    @Test
-    void testCase4_15June10AM() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-15T10:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isOk();
-    }
+        Price price2 = Price.builder()
+                .brandId(2)
+                .startDate(startDate)
+                .endDate(endDate)
+                .rateId(2)
+                .productId(200)
+                .priority(2)
+                .value(80.0)
+                .currency("EUR")
+                .build();
 
-    @Test
-    void testCase5_16June21PM() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-16T21:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isOk();
-    }
+        PriceResponse priceResponse1 = PriceResponse.builder()
+                .productId(100)
+                .brandId(1)
+                .rateId(1)
+                .startDate(startDate)
+                .endDate(endDate)
+                .price(50.0)
+                .build();
 
-    @Test
-    void testMissingProductIdReturnsBadRequest() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        // no enviamos productId
-                        .queryParam("brandId", 1)
-                        .queryParam("applicationDate", "2020-06-14T10:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isBadRequest();
-    }
+        PriceResponse priceResponse2 = PriceResponse.builder()
+                .productId(200)
+                .brandId(2)
+                .rateId(2)
+                .startDate(startDate)
+                .endDate(endDate)
+                .price(80.0)
+                .build();
 
-    @Test
-    void testMissingBrandIdReturnsBadRequest() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        // no enviamos brandId
-                        .queryParam("applicationDate", "2020-06-14T10:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isBadRequest();
-    }
+        when(getPricesUseCase.execute()).thenReturn(Flux.just(price1, price2));
+        when(priceMapper.toResponse(price1)).thenReturn(priceResponse1);
+        when(priceMapper.toResponse(price2)).thenReturn(priceResponse2);
 
-    @Test
-    void testMissingstartDateReturnsBadRequest() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 35455)
-                        .queryParam("brandId", 1)
-                        // no enviamos applicationtDate
-                        .build())
-                .exchange()
-                .expectStatus().isBadRequest();
-    }
+        Mono<ResponseEntity<Flux<PriceResponse>>> resultMono = priceController.getPrices();
 
-    @Test
-    void testGetPricesReturnsOkOrNotFound() {
-        webTestClient.get()
-                .uri("/prices")
-                .exchange()
-                .expectStatus().value(status ->
-                // Accept either 200 OK or 404 Not Found depending on data
-                org.assertj.core.api.Assertions.assertThat(status == 200 || status == 404).isTrue());
-    }
+        StepVerifier.create(resultMono)
+                .assertNext(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertNotNull(response.getBody());
 
-    @Test
-    void testGetPricesReturnsJsonContentType() {
-        webTestClient.get()
-                .uri("/prices")
-                .exchange()
-                .expectHeader().contentTypeCompatibleWith("application/json");
-    }
-
-    @Test
-    void executeReturnsEmptyFlux() {
-        PriceService priceService = Mockito.mock(PriceService.class);
-        when(priceService.getAllPrices()).thenReturn(Flux.empty());
-
-        GetPricesUseCase useCase = new GetPricesUseCase(priceService);
-
-        StepVerifier.create(useCase.execute())
-                .expectNextCount(0)
+                    StepVerifier.create(response.getBody().collectList())
+                            .assertNext(list -> {
+                                assertEquals(2, list.size());
+                                assertTrue(list.contains(priceResponse1));
+                                assertTrue(list.contains(priceResponse2));
+                            })
+                            .verifyComplete();
+                })
                 .verifyComplete();
     }
 
     @Test
-    void testApplicationPricesReturnsNotFoundForNonExisting() {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(BASE_URL)
-                        .queryParam("productId", 999999)
-                        .queryParam("brandId", 999)
-                        .queryParam("applicationDate", "2030-01-01T00:00:00")
-                        .build())
-                .exchange()
-                .expectStatus().isNotFound();
+    void getPrices_shouldReturnNotFound_whenNoPricesExist() {
+        when(getPricesUseCase.execute()).thenReturn(Flux.empty());
+
+        Mono<ResponseEntity<Flux<PriceResponse>>> resultMono = priceController.getPrices();
+
+        StepVerifier.create(resultMono)
+                .assertNext(response -> {
+                    assertEquals(404, response.getStatusCode().value());
+                    assertNull(response.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void getApplicablePrice_shouldReturnOkWithPrice_whenPriceExists() {
+        Integer productId = 1;
+        Integer brandId = 2;
+        LocalDateTime applicationDate = LocalDateTime.now();
+
+        Price price = Price.builder()
+                .brandId(brandId)
+                .startDate(applicationDate.minusDays(1))
+                .endDate(applicationDate.plusDays(1))
+                .rateId(1)
+                .productId(productId)
+                .priority(1)
+                .value(100.0)
+                .currency("EUR")
+                .build();
+
+        PriceResponse priceResponse = PriceResponse.builder()
+                .productId(productId)
+                .brandId(brandId)
+                .rateId(1)
+                .startDate(applicationDate.minusDays(1))
+                .endDate(applicationDate.plusDays(1))
+                .price(100.0)
+                .build();
+
+        when(getApplicablePriceUseCase.execute(any(GetApplicablePriceQuery.class)))
+                .thenReturn(Mono.just(price));
+        when(priceMapper.toResponse(price)).thenReturn(priceResponse);
+
+        Mono<ResponseEntity<PriceResponse>> resultMono = priceController.getApplicablePrice(productId, brandId, applicationDate);
+
+        StepVerifier.create(resultMono)
+                .assertNext(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertEquals(priceResponse, response.getBody());
+                })
+                .verifyComplete();
+
+        ArgumentCaptor<GetApplicablePriceQuery> captor = ArgumentCaptor.forClass(GetApplicablePriceQuery.class);
+        verify(getApplicablePriceUseCase).execute(captor.capture());
+        GetApplicablePriceQuery query = captor.getValue();
+        assertEquals(productId, query.getProductId());
+        assertEquals(brandId, query.getBrandId());
+        assertEquals(applicationDate, query.getApplicationDate());
+    }
+
+    @Test
+    void getApplicablePrice_shouldReturnNotFound_whenNoPriceExists() {
+        Integer productId = 1;
+        Integer brandId = 2;
+        LocalDateTime applicationDate = LocalDateTime.now();
+
+        when(getApplicablePriceUseCase.execute(any(GetApplicablePriceQuery.class)))
+                .thenReturn(Mono.empty());
+
+        Mono<ResponseEntity<PriceResponse>> resultMono = priceController.getApplicablePrice(productId, brandId, applicationDate);
+
+        StepVerifier.create(resultMono)
+                .assertNext(response -> {
+                    assertEquals(404, response.getStatusCode().value());
+                    assertNull(response.getBody());
+                })
+                .verifyComplete();
     }
 }

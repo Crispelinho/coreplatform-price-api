@@ -14,12 +14,12 @@ import static org.mockito.ArgumentMatchers.*;
 class PriceServiceTest {
 
     private IPriceRepository priceRepository;
-    private PriceService priceService;
+    private ReactivePriceService reactivePriceService;
 
     @BeforeEach
     void setUp() {
         priceRepository = Mockito.mock(IPriceRepository.class);
-        priceService = new PriceService(priceRepository);
+        reactivePriceService = new ReactivePriceService(priceRepository);
     }
 
     @Test
@@ -34,7 +34,7 @@ class PriceServiceTest {
                         eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
                 .thenReturn(Mono.just(price));
 
-        Mono<Price> result = priceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+        Mono<Price> result = reactivePriceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
 
         StepVerifier.create(result)
                 .expectNext(price)
@@ -52,7 +52,7 @@ class PriceServiceTest {
                         eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
                 .thenReturn(Mono.empty());
 
-        Mono<Price> result = priceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+        Mono<Price> result = reactivePriceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -65,7 +65,7 @@ class PriceServiceTest {
 
         Mockito.when(priceRepository.findAll()).thenReturn(Flux.just(price1, price2));
 
-        Flux<Price> result = priceService.getAllPrices();
+        Flux<Price> result = reactivePriceService.getAllPrices();
 
         StepVerifier.create(result)
                 .expectNext(price1)
@@ -77,7 +77,7 @@ class PriceServiceTest {
     void testGetAllPrices_ReturnsEmpty() {
         Mockito.when(priceRepository.findAll()).thenReturn(Flux.empty());
 
-        Flux<Price> result = priceService.getAllPrices();
+        Flux<Price> result = reactivePriceService.getAllPrices();
 
         StepVerifier.create(result)
                 .verifyComplete();
