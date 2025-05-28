@@ -2,17 +2,19 @@ package com.inditex.coreplatform.infrastructure.rest.exceptions;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.ServerWebInputException;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
 
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -21,58 +23,62 @@ class GlobalExceptionHandlerTest {
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Test
-    void handleTypeMismatch_returnsBadRequest() {
-        TypeMismatchException ex = new TypeMismatchException("value", String.class);
-        ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+    void handleWebInputException_withTypeMismatch_returnsDetailedMessage() {
+        TypeMismatchException cause = mock(TypeMismatchException.class);
+        when(cause.getPropertyName()).thenReturn("productId");
+        when(cause.getValue()).thenReturn("abc");
+        when(cause.getRequiredType()).thenReturn((Class) Integer.class);
+
+        MethodParameter parameter = mock(MethodParameter.class);
+        when(parameter.getParameterName()).thenReturn("productId");
+        ServerWebInputException ex = new ServerWebInputException("Parámetro inválido", parameter, cause);
+
+        ResponseEntity<String> response = handler.handleWebInputException(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Parámetro"));
-        assertTrue(response.getBody().contains("inválido"));
+        assertNotNull(response.getBody());
+        assertEquals("Parámetro 'productId' inválido: 'abc'. Se esperaba tipo Integer.", response.getBody());
     }
 
     @Test
-    void handleTypeMismatch_withMethodArgumentTypeMismatch_returnsBadRequest() {
-        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
-                "abc", Integer.class, "id", null, new IllegalArgumentException("bad type"));
-        ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+    void handleWebInputException_withNullFields_returnsDesconocido() {
+        // Causa con campos nulos
+        TypeMismatchException cause = mock(TypeMismatchException.class);
+        when(cause.getPropertyName()).thenReturn(null);
+        when(cause.getValue()).thenReturn(null);
+        when(cause.getRequiredType()).thenReturn(null);
+
+        MethodParameter parameter = mock(MethodParameter.class);
+        when(parameter.getParameterName()).thenReturn("desconocido");
+
+        ServerWebInputException ex = new ServerWebInputException("Parámetro inválido", parameter, cause);
+
+        ResponseEntity<String> response = handler.handleWebInputException(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Parámetro 'id' inválido: 'abc'. Se esperaba tipo Integer."));
+        assertNotNull(response.getBody());
+        assertEquals("Parámetro 'desconocido' inválido: 'desconocido'. Se esperaba tipo desconocido.", response.getBody());
     }
 
-@Test
-void handleTypeMismatch_withNullFields_returnsMessageWithDesconocido() {
-    TypeMismatchException ex = mock(TypeMismatchException.class);
-    when(ex.getPropertyName()).thenReturn(null);
-    when(ex.getValue()).thenReturn(null);
-    when(ex.getRequiredType()).thenReturn(null);
+    @Test
+    void handleWebInputException_withOtherCause_returnsGenericReason() {
+        // Causa distinta a TypeMismatchException
+        Throwable otherCause = new IllegalArgumentException("invalid param");
+        MethodParameter parameter = mock(MethodParameter.class);
+        when(parameter.getParameterName()).thenReturn("parameter");
+        ServerWebInputException ex = new ServerWebInputException("Parámetro inválido", parameter, otherCause);
 
-    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+        ResponseEntity<String> response = handler.handleWebInputException(ex);
 
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertTrue(response.getBody().contains("Parámetro 'desconocido' inválido: 'desconocido'. Se esperaba tipo desconocido."));
-}
-
-@Test
-void handleTypeMismatch_withNullRequiredType_returnsMessageWithDesconocido() {
-    // Creamos un mock de TypeMismatchException con valores específicos
-    TypeMismatchException ex = mock(TypeMismatchException.class);
-    when(ex.getPropertyName()).thenReturn("productId");
-    when(ex.getValue()).thenReturn("abc");
-    when(ex.getRequiredType()).thenReturn(null); // requiredType es null
-
-    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertTrue(response.getBody().contains("Parámetro 'productId' inválido: 'abc'. Se esperaba tipo desconocido."));
-}
-
-
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Parámetro inválido: Parámetro inválido", response.getBody());
+    }
 
     @Test
     void handleMissingParams_returnsBadRequest() {
         MissingRequestValueException ex = mock(MissingRequestValueException.class);
         when(ex.getName()).thenReturn("fecha");
+
         ResponseEntity<String> response = handler.handleMissingParams(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -97,7 +103,7 @@ void handleTypeMismatch_withNullRequiredType_returnsMessageWithDesconocido() {
         assertTrue(response.getBody() != null && response.getBody().contains("'param' no puede ser nulo"));
     }
 
-    @Test
+        @Test
     void handleConstraintViolation_returnsDefaultMessageIfNoViolations() {
         ConstraintViolationException ex = new ConstraintViolationException(Collections.emptySet());
         ResponseEntity<String> response = handler.handleConstraintViolation(ex);
@@ -107,20 +113,12 @@ void handleTypeMismatch_withNullRequiredType_returnsMessageWithDesconocido() {
     }
 
     @Test
-    void handleDateParseError_returnsBadRequest() {
-        DateTimeParseException ex = new DateTimeParseException("Invalid format", "bad-date", 0);
-        ResponseEntity<String> response = handler.handleDateParseError(ex);
+    void handleAll_withGenericException_returnsInternalServerError() {
+        Exception ex = new Exception("Error inesperado");
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Formato de fecha inválido"));
-    }
-
-    @Test
-    void handleGenericException_returnsInternalServerError() {
-        Exception ex = new Exception("Unexpected error");
-        ResponseEntity<String> response = handler.handleGenericException(ex);
+        ResponseEntity<String> response = handler.handleAll(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Ocurrió un error inesperado. Por favor, inténtelo más tarde.", response.getBody());
+        assertEquals("Ocurrió un error inesperado.", response.getBody());
     }
 }

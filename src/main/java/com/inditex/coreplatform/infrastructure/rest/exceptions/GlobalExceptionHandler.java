@@ -1,39 +1,38 @@
 package com.inditex.coreplatform.infrastructure.rest.exceptions;
 
-import java.time.format.DateTimeParseException;
-
-import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.ServerWebInputException;
 
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TypeMismatchException.class)
-    public ResponseEntity<String> handleTypeMismatch(TypeMismatchException ex) {
-        String name = ex.getPropertyName();
-        Object value = ex.getValue();
-        Class<?> requiredType = ex.getRequiredType();
+    private static final String UNKNOWN = "desconocido";
 
-        if (ex instanceof MethodArgumentTypeMismatchException) {
-            MethodArgumentTypeMismatchException matme = (MethodArgumentTypeMismatchException) ex;
-            name = matme.getPropertyName();
-            value = matme.getValue();
-            requiredType = matme.getRequiredType();
+    @ExceptionHandler(ServerWebInputException.class)
+    public ResponseEntity<String> handleWebInputException(ServerWebInputException ex) {
+        Throwable cause = ex.getCause();
+
+        if (cause instanceof org.springframework.beans.TypeMismatchException tmex) {
+            String name = tmex.getPropertyName() != null ? tmex.getPropertyName() : UNKNOWN;
+            Object value = tmex.getValue();
+            Class<?> requiredType = tmex.getRequiredType();
+
+            String typeName = requiredType != null ? requiredType.getSimpleName() : UNKNOWN;
+            String message = String.format("Parámetro '%s' inválido: '%s'. Se esperaba tipo %s.",
+                    name,
+                    value != null ? value : UNKNOWN,
+                    typeName);
+            return ResponseEntity.badRequest().body(message);
         }
 
-        String typeName = (requiredType != null) ? requiredType.getSimpleName() : "desconocido";
-        String message = String.format("Parámetro '%s' inválido: '%s'. Se esperaba tipo %s.",
-                (name != null) ? name : "desconocido",
-                (value != null) ? value : "desconocido",
-                typeName);
-        return ResponseEntity.badRequest().body(message);
+        return ResponseEntity.badRequest()
+                .body("Parámetro inválido: " + ex.getReason());
     }
 
     @ExceptionHandler(MissingRequestValueException.class)
@@ -43,6 +42,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
+    
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<String> handleConstraintViolation(ConstraintViolationException ex) {
         String message = ex.getConstraintViolations()
@@ -53,15 +53,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(message);
     }
 
-    @ExceptionHandler(DateTimeParseException.class)
-    public ResponseEntity<String> handleDateParseError(DateTimeParseException ex) {
-        return ResponseEntity.badRequest()
-                .body("Formato de fecha inválido. Use el formato ISO 8601 (e.g., 2024-05-20T15:30:00).");
-    }
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
+    public ResponseEntity<String> handleAll(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Ocurrió un error inesperado. Por favor, inténtelo más tarde.");
+                .body("Ocurrió un error inesperado.");
     }
 }
