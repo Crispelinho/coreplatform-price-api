@@ -6,6 +6,10 @@ import com.inditex.coreplatform.domain.ports.IPriceService;
 
 import reactor.core.publisher.Mono;
 
+/**
+ * Use case for retrieving the applicable price based on product ID, brand ID, and application date.
+ */
+
 public class GetApplicablePriceUseCase {
     private final IPriceService priceService;
 

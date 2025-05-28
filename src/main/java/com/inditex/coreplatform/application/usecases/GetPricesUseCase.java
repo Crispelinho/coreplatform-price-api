@@ -5,6 +5,10 @@ import com.inditex.coreplatform.domain.ports.IPriceService;
 
 import reactor.core.publisher.Flux;
 
+/**
+ * Use case for retrieving all prices.
+ * This use case interacts with the price service to fetch all available prices.
+ */
 public class GetPricesUseCase {
     private final IPriceService priceService;
 
