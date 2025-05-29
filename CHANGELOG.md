@@ -2,6 +2,17 @@
 
 Todas las modificaciones importantes de este proyecto se documentarán en este archivo.
 
+## [1.0.4] - 2025-05-29
+### Añadido
+- Pruebas unitarias completas para PriceController, cubriendo casos de éxito y error para ambos endpoints principales.
+- Excepciones personalizadas en la capa de aplicación (`MissingPriceApplicationRequestParamException`).
+- Observaciones y recomendaciones sobre arquitectura hexagonal y buenas prácticas en la documentación.
+- Refactorización de DTOs y mapeos para mayor claridad y separación de capas.
+
+### Corregido
+- Mejoras en la estructura y claridad del README.md, eliminando información duplicada y reorganizando secciones.
+- Ajustes en los tests para asegurar la correcta validación de respuestas HTTP y cuerpos de respuesta.
+
 ## [1.0.2] - 2025-05-23
 ### Añadido
 - Acción automática de backport para merges contra `main`, que crea PRs hacia `develop` o ramas `release/**`.
