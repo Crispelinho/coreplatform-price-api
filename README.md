@@ -4,18 +4,20 @@
 
 Este proyecto es una aplicación backend desarrollada en **Spring Boot** con enfoque **reactivo (WebFlux)** y acceso a datos mediante **R2DBC**, que simula parte del sistema core de ecommerce de Inditex.
 
-La aplicación expone un endpoint REST que permite consultar el precio aplicable a un producto en una fecha determinada, según su marca y reglas de prioridad en la tabla `PRICES`.
+La aplicación expone endpoints REST para consultar el precio aplicable a un producto en una fecha determinada, según su marca y reglas de prioridad en la tabla `PRICES`.
 
 La base de datos utilizada es **H2 en memoria**, inicializada automáticamente con datos de prueba al arrancar la aplicación.
 
 ---
 
 ## Características
-- Exposición de endpoints REST para consultar precios de productos.
-- Uso de DTOs como PriceResponse para estructurar las respuestas.
+- Endpoints REST para consulta de precios.
+- Uso de DTOs para estructurar las respuestas.
 - Arquitectura hexagonal y principios SOLID.
 - Configuración y dependencias gestionadas con Gradle.
-- Incluye pruebas unitarias y de integración.
+- Pruebas unitarias y de integración.
+- Cobertura de tests y análisis de calidad con Jacoco y SonarQube.
+- Pipeline CI/CD con ejemplo de configuración para GitHub Actions.
 
 ## Tecnologías utilizadas
 
@@ -85,7 +87,7 @@ La tabla `PRICES` contiene los siguientes campos:
 **GET /prices**
 
 - Devuelve un listado de todos los precios disponibles en formato JSON.
-- Respuesta exitosa: Código 200 y un array de objetos `Price`.
+- Respuesta exitosa: Código 200 y un array de objetos `PriceResponse`.
 - Si no existen precios: Código 404.
 
 #### Ejemplo de respuesta exitosa
@@ -138,53 +140,16 @@ La tabla `PRICES` contiene los siguientes campos:
 
 ---
 
-## Estructura de carpetas (Arquitectura Hexagonal)
-
-El proyecto sigue una arquitectura hexagonal (puertos y adaptadores), separando claramente los distintos niveles de la aplicación:
-
-```
-src/
-  main/
-    java/
-      com.inditex.coreplatform/
-        application/         # Lógica de aplicación y casos de uso
-          service/
-          usecases/
-        domain/              # Modelos y lógica de dominio
-          models/
-        infrastructure/      # Adaptadores de entrada/salida (REST, persistencia, mappers)
-          rest/
-            controllers/
-            controllers.responses/
-          mappers/
-    resources/               # Configuración y scripts de base de datos
-      application.properties
-      data.sql
-      schema.sql
-  test/
-    java/
-      com.inditex.coreplatform/
-        application/
-        domain/
-        infrastructure/
-```
-
-- **application**: Casos de uso y servicios de la aplicación.
-- **domain**: Entidades y lógica de negocio.
-- **infrastructure**: Adaptadores externos (controladores REST, persistencia, mapeadores).
-- **resources**: Configuración y datos de la base de datos.
-- **test**: Pruebas unitarias y de integración.
-
----
-
 ## Estructura de carpetas y archivos principales
 
 ```
-price-service/
+coreplatform-price-api/
+├── .gitignore
 ├── build.gradle
+├── CHANGELOG.md
+├── Dockerfile
 ├── gradlew
 ├── gradlew.bat
-├── HELP.md
 ├── README.md
 ├── settings.gradle
 ├── src/
@@ -193,25 +158,40 @@ price-service/
 │   │   │   └── com/
 │   │   │       └── inditex/
 │   │   │           └── coreplatform/
+│   │   │               ├── PriceServiceApplication.java
 │   │   │               ├── application/
+│   │   │               │   ├── exceptions/
+│   │   │               │   │   └── MissingPriceApplicationRequestParamException.java
 │   │   │               │   ├── service/
-│   │   │               │   │   └── PriceService.java
+│   │   │               │   │   └── ReactivePriceService.java
 │   │   │               │   └── usecases/
 │   │   │               │       ├── GetPricesUseCase.java
 │   │   │               │       └── queries/
 │   │   │               │           └── GetApplicablePriceQuery.java
 │   │   │               ├── domain/
-│   │   │               │   └── models/
-│   │   │               │       └── Price.java
-│   │   │               └── infrastructure/
-│   │   │                   ├── mappers/
-│   │   │                   │   └── PriceMapper.java
-│   │   │                   │   └── PriceMapperImpl.java
-│   │   │                   └── rest/
-│   │   │                       └── controllers/
-│   │   │                           ├── PriceController.java
-│   │   │                           └── responses/
-│   │   │                               └── PriceResponse.java
+│   │   │               │   ├── models/
+│   │   │               │   │   └── Price.java
+│   │   │               │   └── ports/
+│   │   │               ├── infrastructure/
+│   │   │               │   ├── config/
+│   │   │               │   │   ├── UseCaseBeanConfig.java
+│   │   │               │   ├── mappers/
+│   │   │               │   │   ├── PriceMapper.java
+│   │   │               │   │   └── PriceMapperImpl.java
+│   │   │               │   ├── persistence/
+│   │   │               │   │   ├── entities/
+│   │   │               │   │   │   └── PriceEntity.java
+│   │   │               │   │   ├── repositories/
+│   │   │               │   │   │   ├── IReactivePriceRepository.java
+│   │   │               │   │   │   └── PriceRepositoryAdapter.java
+│   │   │               │   ├── rest/
+│   │   │               │   │   ├── controllers/
+│   │   │               │   │   │   ├── PriceController.java
+│   │   │               │   │   │   └── dtos/
+│   │   │               │   │   │       ├── ErrorPriceResponse.java
+│   │   │               │   │   │       └── PriceResponse.java
+│   │   │               │   │   └── exceptions/
+│   │   │               │   │       └── GlobalExceptionHandler.java
 │   │   └── resources/
 │   │       ├── application.properties
 │   │       ├── data.sql
@@ -223,24 +203,47 @@ price-service/
 │                   └── coreplatform/
 │                       ├── PriceServiceApplicationTests.java
 │                       ├── application/
+│                       │   ├── exceptions/
+│                       │   │   └── MissingPriceApplicationRequestParamExceptionTest.java
 │                       │   ├── service/
-│                       │   │   └── PriceServiceTest.java
+│                       │   │   └── ReactivePriceServiceTest.java
 │                       │   └── usecases/
+│                       │       ├── GetApplicablePriceUseCaseTest.java
 │                       │       ├── GetPricesUseCaseTest.java
 │                       │       └── queries/
 │                       │           └── GetApplicablePriceQueryTest.java
+│                       ├── domain/
+│                       │   └── models/
+│                       │       └── PriceTest.java
 │                       ├── infrastructure/
 │                       │   ├── controllers/
 │                       │   │   └── PriceControllerTest.java
-│                       │   └── mappers/
-│                       │       └── PriceMapperImplTest.java
-│                       └── domain/
-│                           └── models/
-
+│                       │   ├── mappers/
+│                       │   │   └── PriceMapperImplTest.java
+│                       │   ├── persistence/
+│                       │   │   └── repositories/
+│                       │   │       └── PriceRepositoryAdapterTest.java
+│                       │   └── rest/
+│                       │       └── exceptions/
+│                       │           └── GlobalExceptionHandlerTest.java
 build/
   ... (archivos generados por compilación y pruebas)
+.github/
+  workflows/
+    ci.yml
+    cd.yml
+    backport.yml
+load-tests/
+  load-test.js
+
 ```
 
-Esta estructura refleja todos los archivos fuente y de test generados hasta el momento, organizados según la arquitectura hexagonal y las convenciones de un proyecto Spring Boot moderno.
-
 ---
+
+## Integración y Despliegue Continuo (CI/CD)
+
+El proyecto cuenta con pipelines automatizados configurados en la carpeta `.github/workflows/`:
+
+- **ci.yml**: Ejecuta el pipeline de integración continua en cada push, pull request o creación de rama relevante. Realiza checkout del código, configura JDK 17, ejecuta build, tests y genera reportes de cobertura con Jacoco. Los resultados y reportes se suben como artefactos del workflow.
+- **cd.yml**: Pipeline de despliegue continuo, encargado de publicar el artefacto generado a un entorno de pruebas o producción tras pasar los tests y validaciones.
+- **backport.yml**: Automatiza la creación de pull requests de backport cuando se hace merge a `main`, facilitando la sincronización con ramas `develop` o `release/*`.

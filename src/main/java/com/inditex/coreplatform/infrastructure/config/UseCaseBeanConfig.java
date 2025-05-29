@@ -8,7 +8,7 @@ import com.inditex.coreplatform.application.usecases.GetPricesUseCase;
 import com.inditex.coreplatform.domain.ports.IPriceService;
 
 @Configuration
-public class UseCaseConfig {
+public class UseCaseBeanConfig {
 
     @Bean
     public GetApplicablePriceUseCase getApplicablePriceUseCase(IPriceService priceService) {
