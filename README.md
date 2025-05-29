@@ -1,96 +1,96 @@
-# Prueba Técnica - Inditex Core Platform
+# Inditex Core Platform - Technical Test
 
-## Descripción
+## Description
 
-Este proyecto es una aplicación backend desarrollada en **Spring Boot** con enfoque **reactivo (WebFlux)** y acceso a datos mediante **R2DBC**, que simula parte del sistema core de ecommerce de Inditex.
+This project is a backend application developed with **Spring Boot** using a **reactive approach (WebFlux)** and data access via **R2DBC**, simulating part of Inditex's core ecommerce system.
 
-La aplicación expone endpoints REST para consultar el precio aplicable a un producto en una fecha determinada, según su marca y reglas de prioridad en la tabla `PRICES`.
+The application exposes REST endpoints to query the applicable price for a product at a given date, according to its brand and the priority rules in the `PRICES` table.
 
-La base de datos utilizada es **H2 en memoria**, inicializada automáticamente con datos de prueba al arrancar la aplicación.
+The database used is **in-memory H2**, automatically initialized with test data at application startup.
 
 ---
 
-## Características
-- Endpoints REST para consulta de precios.
-- Uso de DTOs para estructurar las respuestas.
-- Arquitectura hexagonal y principios SOLID.
-- Configuración y dependencias gestionadas con Gradle.
-- Pruebas unitarias y de integración.
-- Cobertura de tests y análisis de calidad con Jacoco y SonarQube.
-- Pipeline CI/CD con ejemplo de configuración para GitHub Actions.
+## Features
+- REST endpoints for price queries.
+- Use of DTOs to structure responses.
+- Hexagonal architecture and SOLID principles.
+- Configuration and dependencies managed with Gradle.
+- Unit and integration tests.
+- Test coverage and code quality analysis with Jacoco and SonarQube.
+- CI/CD pipeline with example configuration for GitHub Actions.
 
-## Tecnologías utilizadas
+## Technologies Used
 
 - Java 17
 - Spring Boot 3.4.5
 - Spring WebFlux
 - Spring Data R2DBC
-- H2 Database (en memoria)
+- H2 Database (in-memory)
 - JUnit 5 / Reactor Test
-- Jacoco (cobertura de tests)
-- SonarQube (análisis de calidad de código)
+- Jacoco (test coverage)
+- SonarQube (code quality analysis)
 - Gradle
 
 ---
 
-## Modelo de datos
+## Data Model
 
-La tabla `PRICES` contiene los siguientes campos:
+The `PRICES` table contains the following fields:
 
-| Campo       | Descripción                                                                 |
-|-------------|-----------------------------------------------------------------------------|
-| `BRAND_ID`  | Identificador de la marca (ej. 1 = ZARA)                                    |
-| `START_DATE`, `END_DATE` | Rango de fechas de validez del precio                     |
-| `PRICE_LIST`| Identificador de la tarifa                                                  |
-| `PRODUCT_ID`| Identificador del producto                                                  |
-| `PRIORITY`  | Nivel de prioridad para resolver solapamientos entre precios               |
-| `PRICE`     | Precio final aplicable                                                      |
-| `CURR`      | Moneda (formato ISO, ej. EUR)                                               |
+| Field        | Description                                                                |
+|-------------|----------------------------------------------------------------------------|
+| `BRAND_ID`  | Brand identifier (e.g., 1 = ZARA)                                          |
+| `START_DATE`, `END_DATE` | Validity date range for the price                        |
+| `PRICE_LIST`| Rate identifier                                                            |
+| `PRODUCT_ID`| Product identifier                                                         |
+| `PRIORITY`  | Priority level to resolve price overlaps                                   |
+| `PRICE`     | Final applicable price                                                     |
+| `CURR`      | Currency (ISO format, e.g., EUR)                                           |
 
 ---
 
-## Instalación
+## Installation
 
-1. Clona el repositorio o descarga el código fuente.
-2. Asegúrate de tener instalado Java 17 y Gradle.
-3. Desde la raíz del proyecto, ejecuta:
+1. Clone the repository or download the source code.
+2. Make sure you have Java 17 and Gradle installed.
+3. From the project root, run:
 
 ```sh
 ./gradlew build
 ```
 
-4. Para iniciar la aplicación localmente:
+4. To start the application locally:
 
 ```sh
 ./gradlew bootRun
 ```
 
-5. El servicio estará disponible en: `http://localhost:8080`
+5. The service will be available at: `http://localhost:8080`
 
-6. Para ejecutar los tests y ver el reporte de cobertura:
+6. To run the tests and view the coverage report:
 
 ```sh
 ./gradlew test jacocoTestReport
 ```
 
-- El reporte de cobertura Jacoco estará en `build/reports/jacoco/test/html/index.html`.
-- El reporte de tests estará en `build/reports/tests/test/index.html`.
+- The Jacoco coverage report will be at `build/reports/jacoco/test/html/index.html`.
+- The test report will be at `build/reports/tests/test/index.html`.
 
-7. (Opcional) Para analizar la calidad del código con SonarQube, asegúrate de tener un servidor SonarQube disponible y configura las propiedades necesarias en `build.gradle` o `sonar-project.properties`.
+7. (Optional) To analyze code quality with SonarQube, make sure you have a SonarQube server available and configure the necessary properties in `build.gradle` or `sonar-project.properties`.
 
 ---
 
-## Endpoints disponibles
+## Available Endpoints
 
-### 1. Obtener todos los precios
+### 1. Get all prices
 
 **GET /prices**
 
-- Devuelve un listado de todos los precios disponibles en formato JSON.
-- Respuesta exitosa: Código 200 y un array de objetos `PriceResponse`.
-- Si no existen precios: Código 404.
+- Returns a list of all available prices in JSON format.
+- Success response: HTTP 200 and an array of `PriceResponse` objects.
+- If no prices exist: HTTP 404.
 
-#### Ejemplo de respuesta exitosa
+#### Example of a successful response
 
 ```json
 [
@@ -105,23 +105,23 @@ La tabla `PRICES` contiene los siguientes campos:
 ]
 ```
 
-### 2. Obtener precio aplicable por producto, marca y fecha
+### 2. Get applicable price by product, brand, and date
 
-**GET /applicationPrices?productId={productId}&brandId={brandId}&applicationDate={fecha}**
+**GET /applicationPrices?productId={productId}&brandId={brandId}&applicationDate={date}**
 
-- Devuelve el precio aplicable para un producto, marca y fecha dados.
-- Respuesta exitosa: Código 200 y un objeto `PriceResponse`.
-- Si no existe precio aplicable: Código 404.
+- Returns the applicable price for a given product, brand, and date.
+- Success response: HTTP 200 and a `PriceResponse` object.
+- If no applicable price exists: HTTP 404.
 
-#### Parámetros
+#### Parameters
 
-| Nombre        | Tipo     | Descripción                          |
-|---------------|----------|--------------------------------------|
-| `applicationDate`        | `String` | Fecha de aplicación (formato ISO-8601, ej. `2020-06-14T10:00:00`) |
-| `productId`   | `Integer`   | Identificador del producto           |
-| `brandId`     | `Integer`   | Identificador de la marca            |
+| Name             | Type     | Description                                              |
+|------------------|----------|----------------------------------------------------------|
+| `applicationDate`| `String` | Application date (ISO-8601 format, e.g., `2020-06-14T10:00:00`) |
+| `productId`      | `Integer`| Product identifier                                       |
+| `brandId`        | `Integer`| Brand identifier                                         |
 
-#### Ejemplo de respuesta exitosa
+#### Example of a successful response
 
 ```json
 {
@@ -134,13 +134,13 @@ La tabla `PRICES` contiene los siguientes campos:
 }
 ```
 
-#### Ejemplo de respuesta cuando no hay precio aplicable
+#### Example of a response when no applicable price exists
 
-- Código de estado: 404 Not Found
+- HTTP status code: 404 Not Found
 
 ---
 
-## Estructura de carpetas y archivos principales
+## Main Folder and File Structure
 
 ```
 coreplatform-price-api/
@@ -227,7 +227,7 @@ coreplatform-price-api/
 │                       │       └── exceptions/
 │                       │           └── GlobalExceptionHandlerTest.java
 build/
-  ... (archivos generados por compilación y pruebas)
+  ... (build and test generated files)
 .github/
   workflows/
     ci.yml
@@ -240,10 +240,14 @@ load-tests/
 
 ---
 
-## Integración y Despliegue Continuo (CI/CD)
+## Continuous Integration and Deployment (CI/CD)
 
-El proyecto cuenta con pipelines automatizados configurados en la carpeta `.github/workflows/`:
+The project includes automated pipelines configured in the `.github/workflows/` folder:
 
-- **ci.yml**: Ejecuta el pipeline de integración continua en cada push, pull request o creación de rama relevante. Realiza checkout del código, configura JDK 17, ejecuta build, tests y genera reportes de cobertura con Jacoco. Los resultados y reportes se suben como artefactos del workflow.
-- **cd.yml**: Pipeline de despliegue continuo, encargado de publicar el artefacto generado a un entorno de pruebas o producción tras pasar los tests y validaciones.
-- **backport.yml**: Automatiza la creación de pull requests de backport cuando se hace merge a `main`, facilitando la sincronización con ramas `develop` o `release/*`.
+- **ci.yml**: Runs the continuous integration pipeline on every push, pull request, or relevant branch creation. Checks out the code, sets up JDK 17, runs build, tests, and generates coverage reports with Jacoco. Results and reports are uploaded as workflow artifacts.
+- **cd.yml**: Continuous deployment pipeline, responsible for publishing the generated artifact to a test or production environment after passing tests and validations.
+- **backport.yml**: Automates the creation of backport pull requests when merging to `main`, facilitating synchronization with `develop` or `release/*` branches.
+
+You can customize these workflows by editing the YAML files in `.github/workflows/` as needed for your team or environment.
+
+---
