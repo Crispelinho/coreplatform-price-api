@@ -19,9 +19,9 @@ public class GetApplicablePriceUseCase {
 
     public Mono<Price> execute(GetApplicablePriceQuery query) {
         return priceService.getPriceByProductAndBrandIdAndApplicationDate(
-            query.getProductId(),
-            query.getBrandId(),
-            query.getApplicationDate()
+            query.productId(),
+            query.brandId(),
+            query.applicationDate()
         );
     }
 }
