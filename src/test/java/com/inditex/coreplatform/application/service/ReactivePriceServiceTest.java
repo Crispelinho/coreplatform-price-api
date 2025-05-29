@@ -10,7 +10,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
-import static org.mockito.ArgumentMatchers.*;
 
 class ReactivePriceServiceTest {
 
@@ -41,7 +40,7 @@ class ReactivePriceServiceTest {
 
                 Mockito.when(priceRepository
                                 .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
-                                                eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
+                                                productId, brandId, applicationDate, applicationDate))
                                 .thenReturn(Mono.just(price));
 
                 Mono<Price> result = reactivePriceService
@@ -62,7 +61,7 @@ class ReactivePriceServiceTest {
 
                 Mockito.when(priceRepository
                                 .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
-                                                eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
+                                                productId, brandId, applicationDate, applicationDate))
                                 .thenReturn(Mono.empty());
 
                 Mono<Price> result = reactivePriceService.getPriceByProductAndBrandIdAndApplicationDate(productId,
@@ -179,7 +178,7 @@ class ReactivePriceServiceTest {
 
                 Mockito.when(priceRepository
                         .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
-                                eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
+                                productId, brandId, applicationDate, applicationDate))
                         .thenReturn(Mono.just(price));
 
                 Mono<Price> result = reactivePriceService
