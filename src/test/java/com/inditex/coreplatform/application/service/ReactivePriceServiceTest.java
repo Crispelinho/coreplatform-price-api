@@ -9,7 +9,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import static org.mockito.ArgumentMatchers.*;
 
@@ -96,5 +95,97 @@ class ReactivePriceServiceTest {
 
                 StepVerifier.create(result)
                                 .verifyComplete();
+        }
+
+        @Test
+        void testGetPriceByProductAndBrandIdAndApplicationDate_MissingProductId() {
+                Integer productId = null;
+                Integer brandId = 2;
+                LocalDateTime applicationDate = LocalDateTime.now();
+
+                Mono<Price> result = reactivePriceService
+                        .getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+
+                StepVerifier.create(result)
+                        .expectErrorSatisfies(throwable -> {
+                                assert throwable instanceof com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+                                assert throwable.getMessage().contains("productId");
+                        })
+                        .verify();
+        }
+
+        @Test
+        void testGetPriceByProductAndBrandIdAndApplicationDate_MissingBrandId() {
+                Integer productId = 1;
+                Integer brandId = null;
+                LocalDateTime applicationDate = LocalDateTime.now();
+
+                Mono<Price> result = reactivePriceService
+                        .getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+
+                StepVerifier.create(result)
+                        .expectErrorSatisfies(throwable -> {
+                                assert throwable instanceof com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+                                assert throwable.getMessage().contains("brandId");
+                        })
+                        .verify();
+        }
+
+        @Test
+        void testGetPriceByProductAndBrandIdAndApplicationDate_MissingApplicationDate() {
+                Integer productId = 1;
+                Integer brandId = 2;
+                LocalDateTime applicationDate = null;
+
+                Mono<Price> result = reactivePriceService
+                        .getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+
+                StepVerifier.create(result)
+                        .expectErrorSatisfies(throwable -> {
+                                assert throwable instanceof com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+                                assert throwable.getMessage().contains("applicationDate");
+                        })
+                        .verify();
+        }
+
+        @Test
+        void testGetPriceByProductAndBrandIdAndApplicationDate_MultipleMissingParams() {
+                Integer productId = null;
+                Integer brandId = null;
+                LocalDateTime applicationDate = null;
+
+                Mono<Price> result = reactivePriceService
+                        .getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+
+                StepVerifier.create(result)
+                        .expectErrorSatisfies(throwable -> {
+                                assert throwable instanceof com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+                                assert throwable.getMessage().contains("productId");
+                                assert throwable.getMessage().contains("brandId");
+                                assert throwable.getMessage().contains("applicationDate");
+                                assert throwable.getMessage().contains("parameters");
+                        })
+                        .verify();
+        }
+
+        @Test
+        void testGetPriceByProductAndBrandIdAndApplicationDate_FiltersNonApplicablePrice() {
+                Integer productId = 1;
+                Integer brandId = 2;
+                LocalDateTime applicationDate = LocalDateTime.of(2020, 6, 14, 10, 0);
+
+                Price price = Mockito.mock(Price.class);
+                Mockito.when(price.isApplicableAt(applicationDate)).thenReturn(false);
+
+                Mockito.when(priceRepository
+                        .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
+                                eq(productId), eq(brandId), eq(applicationDate), eq(applicationDate)))
+                        .thenReturn(Mono.just(price));
+
+                Mono<Price> result = reactivePriceService
+                        .getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate);
+
+                StepVerifier.create(result)
+                        .verifyComplete();
         }
 }
