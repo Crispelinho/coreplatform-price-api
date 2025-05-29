@@ -2,17 +2,24 @@ package com.inditex.coreplatform.infrastructure.rest.exceptions;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.ServerWebInputException;
+import org.springframework.http.server.RequestPath;
+
+import com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.ErrorPriceResponse;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
 
-import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -20,107 +27,168 @@ class GlobalExceptionHandlerTest {
 
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
-    @Test
-    void handleTypeMismatch_returnsBadRequest() {
-        TypeMismatchException ex = new TypeMismatchException("value", String.class);
-        ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+    private ServerHttpRequest mockRequest(String path) {
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        RequestPath requestPath = mock(RequestPath.class);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Parámetro"));
-        assertTrue(response.getBody().contains("inválido"));
+        when(requestPath.value()).thenReturn(path);
+        when(request.getPath()).thenReturn(requestPath);
+
+        return request;
     }
 
     @Test
-    void handleTypeMismatch_withMethodArgumentTypeMismatch_returnsBadRequest() {
-        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
-                "abc", Integer.class, "id", null, new IllegalArgumentException("bad type"));
-        ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+    void handleWebInputException_withTypeMismatch_returnsDetailedErrorResponse() {
+        TypeMismatchException cause = mock(TypeMismatchException.class);
+        when(cause.getPropertyName()).thenReturn("productId");
+        when(cause.getValue()).thenReturn("abc");
+        when(cause.getRequiredType()).thenReturn((Class) Integer.class);
+
+        MethodParameter parameter = mock(MethodParameter.class);
+        ServerWebInputException ex = new ServerWebInputException("Invalid parameter", parameter, cause);
+
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleWebInputException(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Parámetro 'id' inválido: 'abc'. Se esperaba tipo Integer."));
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals(400, body.status());
+        assertEquals("Bad Request", body.error());
+        assertEquals("/prices", body.path());
+        assertEquals("Invalid parameter 'productId': 'abc'. Expected type is Integer.", body.message());
     }
 
-@Test
-void handleTypeMismatch_withNullFields_returnsMessageWithDesconocido() {
-    TypeMismatchException ex = mock(TypeMismatchException.class);
-    when(ex.getPropertyName()).thenReturn(null);
-    when(ex.getValue()).thenReturn(null);
-    when(ex.getRequiredType()).thenReturn(null);
+    @Test
+    void handleWebInputException_withNullFields_returnsUnknown() {
+        TypeMismatchException cause = mock(TypeMismatchException.class);
+        when(cause.getPropertyName()).thenReturn(null);
+        when(cause.getValue()).thenReturn(null);
+        when(cause.getRequiredType()).thenReturn(null);
 
-    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+        MethodParameter parameter = mock(MethodParameter.class);
+        ServerWebInputException ex = new ServerWebInputException("Invalid parameter", parameter, cause);
 
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertTrue(response.getBody().contains("Parámetro 'desconocido' inválido: 'desconocido'. Se esperaba tipo desconocido."));
-}
+        ServerHttpRequest request = mockRequest("/prices");
 
-@Test
-void handleTypeMismatch_withNullRequiredType_returnsMessageWithDesconocido() {
-    // Creamos un mock de TypeMismatchException con valores específicos
-    TypeMismatchException ex = mock(TypeMismatchException.class);
-    when(ex.getPropertyName()).thenReturn("productId");
-    when(ex.getValue()).thenReturn("abc");
-    when(ex.getRequiredType()).thenReturn(null); // requiredType es null
+        ResponseEntity<ErrorPriceResponse> response = handler.handleWebInputException(ex, request);
 
-    ResponseEntity<String> response = handler.handleTypeMismatch(ex);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals(400, body.status());
+        assertEquals("Bad Request", body.error());
+        assertEquals("/prices", body.path());
+        assertEquals("Invalid parameter 'unknown': 'unknown'. Expected type is unknown.", body.message());
+    }
 
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertTrue(response.getBody().contains("Parámetro 'productId' inválido: 'abc'. Se esperaba tipo desconocido."));
-}
+    @Test
+    void handleWebInputException_withOtherCause_returnsGenericReason() {
+        Throwable otherCause = new IllegalArgumentException("invalid param");
+        MethodParameter parameter = mock(MethodParameter.class);
+        ServerWebInputException ex = new ServerWebInputException("Invalid parameter", parameter, otherCause);
 
+        ServerHttpRequest request = mockRequest("/prices");
 
+        ResponseEntity<ErrorPriceResponse> response = handler.handleWebInputException(ex, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid parameter: Invalid parameter", body.message());
+    }
 
     @Test
     void handleMissingParams_returnsBadRequest() {
         MissingRequestValueException ex = mock(MissingRequestValueException.class);
-        when(ex.getName()).thenReturn("fecha");
-        ResponseEntity<String> response = handler.handleMissingParams(ex);
+        when(ex.getName()).thenReturn("applicationDate");
+
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleMissingParams(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Falta el parámetro obligatorio 'fecha'.", response.getBody());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Missing required parameter 'applicationDate'.", body.message());
+        assertEquals("/prices", body.path());
     }
 
     @Test
     void handleConstraintViolation_returnsBadRequestWithMessage() {
         @SuppressWarnings("unchecked")
         ConstraintViolation<Object> violation = mock(ConstraintViolation.class);
-        Path mockPath = mock(jakarta.validation.Path.class);
+        Path mockPath = mock(Path.class);
         when(mockPath.toString()).thenReturn("param");
         when(violation.getPropertyPath()).thenReturn(mockPath);
-        when(violation.getMessage()).thenReturn("no puede ser nulo");
-        Set<ConstraintViolation<?>> violations = Collections.singleton(violation);
+        when(violation.getMessage()).thenReturn("must not be null");
 
+        Set<ConstraintViolation<?>> violations = Collections.singleton(violation);
         ConstraintViolationException ex = new ConstraintViolationException(violations);
-        ResponseEntity<String> response = handler.handleConstraintViolation(ex);
+
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleConstraintViolation(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() != null && response.getBody().contains("'param' no puede ser nulo"));
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertTrue(body.message().contains("'param' must not be null"));
     }
 
     @Test
     void handleConstraintViolation_returnsDefaultMessageIfNoViolations() {
         ConstraintViolationException ex = new ConstraintViolationException(Collections.emptySet());
-        ResponseEntity<String> response = handler.handleConstraintViolation(ex);
 
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleConstraintViolation(ex, request);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Parámetro inválido.", response.getBody());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid parameter.", body.message());
     }
 
     @Test
-    void handleDateParseError_returnsBadRequest() {
-        DateTimeParseException ex = new DateTimeParseException("Invalid format", "bad-date", 0);
-        ResponseEntity<String> response = handler.handleDateParseError(ex);
+    void handleMissingPriceParam_withMessage_returnsBadRequest() {
+        String errorMsg = "productId";
+        MissingPriceApplicationRequestParamException ex = new MissingPriceApplicationRequestParamException(errorMsg);
 
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleMissingPriceParam(ex, request);
+        String expectedMessage = "Missing required request parameter: productId";
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody().contains("Formato de fecha inválido"));
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals(expectedMessage, body.message());
     }
 
     @Test
-    void handleGenericException_returnsInternalServerError() {
+    void handleMissingPriceParam_withNullMessage_returnsDefault() {
+        MissingPriceApplicationRequestParamException ex = mock(MissingPriceApplicationRequestParamException.class);
+        when(ex.getMessage()).thenReturn(null);
+
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleMissingPriceParam(ex, request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Missing required parameter for price application.", body.message());
+    }
+
+    @Test
+    void handleAll_withGenericException_returnsInternalServerError() {
         Exception ex = new Exception("Unexpected error");
-        ResponseEntity<String> response = handler.handleGenericException(ex);
 
+        ServerHttpRequest request = mockRequest("/prices");
+
+        ResponseEntity<ErrorPriceResponse> response = handler.handleAll(ex, request);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Ocurrió un error inesperado. Por favor, inténtelo más tarde.", response.getBody());
+        ErrorPriceResponse body = response.getBody();
+        assertNotNull(body);
+        assertEquals("An unexpected error occurred.", body.message());
     }
 }

@@ -30,9 +30,9 @@ class GetApplicablePriceUseCaseTest {
         Price price = new Price(); // Assuming default constructor
 
         GetApplicablePriceQuery query = mock(GetApplicablePriceQuery.class);
-        when(query.getProductId()).thenReturn(productId);
-        when(query.getBrandId()).thenReturn(brandId);
-        when(query.getApplicationDate()).thenReturn(applicationDate);
+        when(query.productId()).thenReturn(productId);
+        when(query.brandId()).thenReturn(brandId);
+        when(query.applicationDate()).thenReturn(applicationDate);
 
         when(priceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate))
                 .thenReturn(Mono.just(price));
@@ -54,9 +54,9 @@ class GetApplicablePriceUseCaseTest {
         LocalDateTime applicationDate = LocalDateTime.now();
 
         GetApplicablePriceQuery query = mock(GetApplicablePriceQuery.class);
-        when(query.getProductId()).thenReturn(productId);
-        when(query.getBrandId()).thenReturn(brandId);
-        when(query.getApplicationDate()).thenReturn(applicationDate);
+        when(query.productId()).thenReturn(productId);
+        when(query.brandId()).thenReturn(brandId);
+        when(query.applicationDate()).thenReturn(applicationDate);
 
         when(priceService.getPriceByProductAndBrandIdAndApplicationDate(productId, brandId, applicationDate))
                 .thenReturn(Mono.empty());

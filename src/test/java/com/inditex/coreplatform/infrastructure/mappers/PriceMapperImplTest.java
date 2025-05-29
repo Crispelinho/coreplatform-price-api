@@ -44,7 +44,7 @@ class PriceMapperImplTest {
         assertEquals(entity.getPriceList(), price.getRateId());
         assertEquals(entity.getProductId(), price.getProductId());
         assertEquals(entity.getPriority(), price.getPriority());
-        assertEquals(entity.getPrice(), price.getPrice());
+        assertEquals(entity.getPrice(), price.getValue());
         assertEquals(entity.getCurr(), price.getCurrency());
     }
 
@@ -62,7 +62,7 @@ class PriceMapperImplTest {
                 .rateId(2)
                 .productId(3)
                 .priority(4)
-                .price(99.99)
+                .value(99.99)
                 .currency("EUR")
                 .build();
 
@@ -75,7 +75,7 @@ class PriceMapperImplTest {
         assertEquals(price.getRateId(), entity.getPriceList());
         assertEquals(price.getProductId(), entity.getProductId());
         assertEquals(price.getPriority(), entity.getPriority());
-        assertEquals(price.getPrice(), entity.getPrice());
+        assertEquals(price.getValue(), entity.getPrice());
         assertEquals(price.getCurrency(), entity.getCurr());
     }
 
@@ -92,7 +92,7 @@ class PriceMapperImplTest {
                 .endDate(LocalDateTime.of(2023, 12, 31, 23, 59))
                 .rateId(2)
                 .productId(3)
-                .price(99.99)
+                .value(99.99)
                 .build();
 
         PriceResponse response = priceMapper.toResponse(price);
@@ -103,6 +103,6 @@ class PriceMapperImplTest {
         assertEquals(price.getEndDate(), response.getEndDate());
         assertEquals(price.getRateId(), response.getRateId());
         assertEquals(price.getProductId(), response.getProductId());
-        assertEquals(price.getPrice(), response.getPrice());
+        assertEquals(price.getValue(), response.getPrice());
     }
 }

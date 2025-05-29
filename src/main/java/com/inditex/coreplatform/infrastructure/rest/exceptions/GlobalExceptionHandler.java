@@ -1,67 +1,84 @@
 package com.inditex.coreplatform.infrastructure.rest.exceptions;
 
-import java.time.format.DateTimeParseException;
+import java.time.LocalDateTime;
 
-import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.MissingRequestValueException;
+import org.springframework.web.server.ServerWebInputException;
+
+import com.inditex.coreplatform.application.exceptions.MissingPriceApplicationRequestParamException;
+import com.inditex.coreplatform.infrastructure.rest.controllers.dtos.ErrorPriceResponse;
 
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TypeMismatchException.class)
-    public ResponseEntity<String> handleTypeMismatch(TypeMismatchException ex) {
-        String name = ex.getPropertyName();
-        Object value = ex.getValue();
-        Class<?> requiredType = ex.getRequiredType();
+    private static final String UNKNOWN = "unknown";
 
-        if (ex instanceof MethodArgumentTypeMismatchException) {
-            MethodArgumentTypeMismatchException matme = (MethodArgumentTypeMismatchException) ex;
-            name = matme.getPropertyName();
-            value = matme.getValue();
-            requiredType = matme.getRequiredType();
+    @ExceptionHandler(ServerWebInputException.class)
+    public ResponseEntity<ErrorPriceResponse> handleWebInputException(ServerWebInputException ex, ServerHttpRequest request) {
+        Throwable cause = ex.getCause();
+
+        String message;
+        if (cause instanceof org.springframework.beans.TypeMismatchException tmex) {
+            String name = tmex.getPropertyName() != null ? tmex.getPropertyName() : UNKNOWN;
+            Object value = tmex.getValue();
+            Class<?> requiredType = tmex.getRequiredType();
+
+            String typeName = requiredType != null ? requiredType.getSimpleName() : UNKNOWN;
+            message = String.format("Invalid parameter '%s': '%s'. Expected type is %s.",
+                    name,
+                    value != null ? value : UNKNOWN,
+                    typeName);
+        } else {
+            message = "Invalid parameter: " + ex.getReason();
         }
 
-        String typeName = (requiredType != null) ? requiredType.getSimpleName() : "desconocido";
-        String message = String.format("Parámetro '%s' inválido: '%s'. Se esperaba tipo %s.",
-                (name != null) ? name : "desconocido",
-                (value != null) ? value : "desconocido",
-                typeName);
-        return ResponseEntity.badRequest().body(message);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler(MissingRequestValueException.class)
-    public ResponseEntity<String> handleMissingParams(MissingRequestValueException ex) {
+    public ResponseEntity<ErrorPriceResponse> handleMissingParams(MissingRequestValueException ex, ServerHttpRequest request) {
         String name = ex.getName();
-        String message = String.format("Falta el parámetro obligatorio '%s'.", name);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        String message = String.format("Missing required parameter '%s'.", name);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<String> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ErrorPriceResponse> handleConstraintViolation(ConstraintViolationException ex, ServerHttpRequest request) {
         String message = ex.getConstraintViolations()
                 .stream()
                 .map(v -> String.format("'%s' %s", v.getPropertyPath(), v.getMessage()))
                 .findFirst()
-                .orElse("Parámetro inválido.");
-        return ResponseEntity.badRequest().body(message);
+                .orElse("Invalid parameter.");
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
-    @ExceptionHandler(DateTimeParseException.class)
-    public ResponseEntity<String> handleDateParseError(DateTimeParseException ex) {
-        return ResponseEntity.badRequest()
-                .body("Formato de fecha inválido. Use el formato ISO 8601 (e.g., 2024-05-20T15:30:00).");
+    @ExceptionHandler(MissingPriceApplicationRequestParamException.class)
+    public ResponseEntity<ErrorPriceResponse> handleMissingPriceParam(MissingPriceApplicationRequestParamException ex, ServerHttpRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage()
+                : "Missing required parameter for price application.";
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Ocurrió un error inesperado. Por favor, inténtelo más tarde.");
+    public ResponseEntity<ErrorPriceResponse> handleAll(Exception ex, ServerHttpRequest request) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.", request);
+    }
+
+    private ResponseEntity<ErrorPriceResponse> buildErrorResponse(HttpStatus status, String message, ServerHttpRequest request) {
+        var error = new ErrorPriceResponse(
+            status.value(),
+            status.getReasonPhrase(),
+            message,
+            request.getPath().value(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(status).body(error);
     }
 }

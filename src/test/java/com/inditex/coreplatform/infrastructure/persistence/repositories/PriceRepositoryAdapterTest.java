@@ -2,6 +2,7 @@ package com.inditex.coreplatform.infrastructure.persistence.repositories;
 
 import com.inditex.coreplatform.domain.models.Price;
 import com.inditex.coreplatform.infrastructure.mappers.PriceMapper;
+import com.inditex.coreplatform.infrastructure.persistence.PriceRepositoryAdapter;
 import com.inditex.coreplatform.infrastructure.persistence.entities.PriceEntity;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,17 +13,17 @@ import reactor.test.StepVerifier;
 import java.time.LocalDateTime;
 import static org.mockito.Mockito.*;
 
-class PriceRepositoryTest {
+class PriceRepositoryAdapterTest {
 
     private IReactivePriceRepository reactivePriceRepository;
     private PriceMapper priceMapper;
-    private PriceRepository priceRepository;
+    private PriceRepositoryAdapter priceRepositoryApapter;
 
     @BeforeEach
     void setUp() {
         reactivePriceRepository = mock(IReactivePriceRepository.class);
         priceMapper = mock(PriceMapper.class);
-        priceRepository = new PriceRepository(reactivePriceRepository, priceMapper);
+        priceRepositoryApapter = new PriceRepositoryAdapter(reactivePriceRepository, priceMapper);
     }
 
     @Test
@@ -41,7 +42,7 @@ class PriceRepositoryTest {
                 .thenReturn(Mono.just(entity));
         when(priceMapper.toDomain(entity)).thenReturn(domainPrice);
 
-        Mono<Price> result = priceRepository
+        Mono<Price> result = priceRepositoryApapter
                 .findTopByProductIdAndBrandIdAndStartDateLessThanEqualAndEndDateGreaterThanEqualOrderByPriorityDesc(
                         productId, brandId, startDate, endDate);
 
@@ -67,7 +68,7 @@ class PriceRepositoryTest {
         when(priceMapper.toDomain(entity1)).thenReturn(domainPrice1);
         when(priceMapper.toDomain(entity2)).thenReturn(domainPrice2);
 
-        Flux<Price> result = priceRepository.findAll();
+        Flux<Price> result = priceRepositoryApapter.findAll();
 
         StepVerifier.create(result)
                 .expectNext(domainPrice1)
