@@ -14,9 +14,9 @@ class GetApplicablePriceQueryTest {
 
         GetApplicablePriceQuery query = new GetApplicablePriceQuery(productId, brandId, applicationDate);
 
-        assertEquals(productId, query.getProductId());
-        assertEquals(brandId, query.getBrandId());
-        assertEquals(applicationDate, query.getApplicationDate());
+        assertEquals(productId, query.productId());
+        assertEquals(brandId, query.brandId());
+        assertEquals(applicationDate, query.applicationDate());
     }
 
     @Test

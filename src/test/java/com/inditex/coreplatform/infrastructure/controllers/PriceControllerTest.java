@@ -159,9 +159,9 @@ class PriceControllerTest {
         ArgumentCaptor<GetApplicablePriceQuery> captor = ArgumentCaptor.forClass(GetApplicablePriceQuery.class);
         verify(getApplicablePriceUseCase).execute(captor.capture());
         GetApplicablePriceQuery query = captor.getValue();
-        assertEquals(productId, query.getProductId());
-        assertEquals(brandId, query.getBrandId());
-        assertEquals(applicationDate, query.getApplicationDate());
+        assertEquals(productId, query.productId());
+        assertEquals(brandId, query.brandId());
+        assertEquals(applicationDate, query.applicationDate());
     }
 
     @Test
