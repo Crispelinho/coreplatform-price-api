@@ -126,7 +126,7 @@ class PriceServiceApplicationTests {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL + "/applicable")
-                        .queryParam("productId", "35455")
+                        .queryParam("productId", 35455)
                         .queryParam("brandId", "xyz")
                         .queryParam("applicationDate", "2020-06-14T10:00:00")
                         .build())
@@ -141,14 +141,29 @@ class PriceServiceApplicationTests {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL + "/applicable")
-                        .queryParam("productId", -1)
+                        .queryParam("productId", 35455)
                         .queryParam("brandId", 1)
                         .queryParam("applicationDate", "2020-06-14T10:00:00")
                         .build())
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ErrorPriceResponse.class)
-                .value(body -> assertThat(body.message()).contains("'getApplicablePrice.productId' debe ser mayor que 0"));
+                .value(body -> assertThat(body.message()).contains("'getApplicablePrice.productId' must be a positive integer"));
+    }
+
+        @Test
+    void testNegativeBrandIdReturnsBadRequest() {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path(BASE_URL + "/applicable")
+                        .queryParam("productId", 1)
+                        .queryParam("brandId", -1)
+                        .queryParam("applicationDate", "2020-06-14T10:00:00")
+                        .build())
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(ErrorPriceResponse.class)
+                .value(body -> assertThat(body.message()).contains("'getApplicablePrice.brandId' must be a positive integer"));
     }
 
     @Test
