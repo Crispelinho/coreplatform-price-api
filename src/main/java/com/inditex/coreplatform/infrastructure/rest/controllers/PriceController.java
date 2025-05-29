@@ -32,8 +32,8 @@ public class PriceController {
     private final PriceMapper priceMapper;
 
     public PriceController(GetApplicablePriceUseCase getApplicablePriceUseCase,
-                           GetPricesUseCase getPricesUseCase,
-                           PriceMapper priceMapper) {
+            GetPricesUseCase getPricesUseCase,
+            PriceMapper priceMapper) {
         this.getApplicablePriceUseCase = getApplicablePriceUseCase;
         this.getPricesUseCase = getPricesUseCase;
         this.priceMapper = priceMapper;
@@ -45,19 +45,16 @@ public class PriceController {
                 .map(priceMapper::toResponse);
 
         return pricesResponse.hasElements()
-                .flatMap(hasElements -> hasElements
-                        ? Mono.just(ResponseEntity.ok(pricesResponse))
-                        : Mono.just(ResponseEntity.notFound().build()));
+                .flatMap(has -> Mono.just(
+                        Boolean.TRUE.equals(has)
+                                ? ResponseEntity.ok(pricesResponse)
+                                : ResponseEntity.notFound().build()));
     }
 
     @GetMapping(value = "/applicable", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PriceResponse>> getApplicablePrice(
-            @RequestParam("productId") @NotNull @Positive (
-                message = "must be a positive integer"
-                ) Integer productId,
-            @RequestParam("brandId") @NotNull @Positive(
-                message = "must be a positive integer"
-            ) Integer brandId,
+            @RequestParam("productId") @NotNull @Positive(message = "must be a positive integer") Integer productId,
+            @RequestParam("brandId") @NotNull @Positive(message = "must be a positive integer") Integer brandId,
             @RequestParam("applicationDate") @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime applicationDate) {
 
         GetApplicablePriceQuery query = new GetApplicablePriceQuery(productId, brandId, applicationDate);
