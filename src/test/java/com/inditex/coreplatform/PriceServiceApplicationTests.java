@@ -141,7 +141,7 @@ class PriceServiceApplicationTests {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL + "/applicable")
-                        .queryParam("productId", 35455)
+                        .queryParam("productId", -1)
                         .queryParam("brandId", 1)
                         .queryParam("applicationDate", "2020-06-14T10:00:00")
                         .build())
@@ -156,7 +156,7 @@ class PriceServiceApplicationTests {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path(BASE_URL + "/applicable")
-                        .queryParam("productId", 1)
+                        .queryParam("productId", 35455)
                         .queryParam("brandId", -1)
                         .queryParam("applicationDate", "2020-06-14T10:00:00")
                         .build())
