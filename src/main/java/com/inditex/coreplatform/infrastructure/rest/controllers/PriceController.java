@@ -52,8 +52,12 @@ public class PriceController {
 
     @GetMapping(value = "/applicable", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PriceResponse>> getApplicablePrice(
-            @RequestParam("productId") @NotNull @Positive Integer productId,
-            @RequestParam("brandId") @NotNull @Positive Integer brandId,
+            @RequestParam("productId") @NotNull @Positive (
+                message = "must be a positive integer"
+                ) Integer productId,
+            @RequestParam("brandId") @NotNull @Positive(
+                message = "must be a positive integer"
+            ) Integer brandId,
             @RequestParam("applicationDate") @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime applicationDate) {
 
         GetApplicablePriceQuery query = new GetApplicablePriceQuery(productId, brandId, applicationDate);
